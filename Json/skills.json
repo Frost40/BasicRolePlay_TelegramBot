@@ -1,0 +1,354 @@
+{
+    "Abilità Manuale": {
+        "base_lvl": 5,
+        "specializations": [
+            "Scassinare serrature",
+            "Smontare oggetti in fretta"
+        ]
+    },
+    "Arma a Distanza": {
+        "base_lvl": 0,
+        "specializations": [
+            "Arco",
+            "Balestra",
+            "Lancia"
+        ]
+    },
+    "Arma a Energia": {
+        "base_lvl": 0,
+        "specializations": [
+            "Pistola a Energia",
+            "Fucile a Energia"
+        ]
+    },
+    "Arma da Fuoco": {
+        "base_lvl": 0,
+        "specializations": [
+            "Mitragliatrice",
+            "Pistola",
+            "Revolver",
+            "Fucile",
+            "Shotgun",
+            "Mitra"
+        ]
+    },
+    "Arma da Mischia": {
+        "base_lvl": 0,
+        "specializations": [
+            "Arma Inastata",
+            "Ascia",
+            "Bastone",
+            "Lancia",
+            "Martello",
+            "Mazza",
+            "Mazzafrusto",
+            "Pugnale",
+            "Randello",
+            "Spada"
+        ]
+    },
+    "Arma Pesante": {
+        "base_lvl": 0,
+        "specializations": [
+            "Bazooka",
+            "Mitragliatrice Pesante",
+            "Minigun",
+            "Lanciarazzi"
+        ]
+    },
+    "Arte": {
+        "base_lvl": 5,
+        "specializations": [
+            "Architettura",
+            "Calligrafia",
+            "Cinema",
+            "Fotografia",
+            "Pittura",
+            "Scultura"
+        ]
+    },
+    "Artigianato": {
+        "base_lvl": 5,
+        "specializations": [
+            "Falegnameria",
+            "Forgiatura",
+            "Sartoria",
+            "Cucina",
+            "Nodi"
+        ]
+    },
+    "Artiglieria": {
+        "base_lvl": 0,
+        "specializations": [
+            "Cannone",
+            "Lanciamissile",
+            "Macchina d'Assedio"
+        ]
+    },
+    "Arti Marziali": {
+        "base_lvl": 1,
+        "specializations": []
+    },
+    "Ascoltare": {
+        "base_lvl": 25,
+        "specializations": []
+    },
+    "Camuffare": {
+        "base_lvl": 1,
+        "specializations": []
+    },
+    "Cavalcare": {
+        "base_lvl": 5,
+        "specializations": [
+            "Cavalli",
+            "Draghi",
+            "Gufi Giganti"
+        ]
+    },
+    "Comandare": {
+        "base_lvl": 5,
+        "specializations": []
+    },
+    "Conoscenza": {
+        "base_lvl": 5,
+        "specializations": [
+            "Antropologia",
+            "Archeologia",
+            "Area",
+            "Cultura di Strada",
+            "Folklore",
+            "Gruppo",
+            "Letteratura",
+            "Linguistica",
+            "Legge",
+            "Mitologia",
+            "Occultismo",
+            "Politica",
+            "Storia"
+        ]
+    },
+    "Contrattare": {
+        "base_lvl": 5,
+        "specializations": []
+    },
+    "Demolizioni": {
+        "base_lvl": 1,
+        "specializations": []
+    },
+    "Esibirsi": {
+        "base_lvl": 5,
+        "specializations": [
+            "Musica",
+            "Recitazione",
+            "Acrobazie",
+            "Umorismo"
+        ]
+    },
+    "Furtività": {
+        "base_lvl": 10,
+        "specializations": []
+    },
+    "Galateo": {
+        "base_lvl": 5,
+        "specializations": []
+    },
+    "Giocare": {
+        "base_lvl": "INT+POT",
+        "specializations": []
+    },
+    "Guidare": {
+        "base_lvl": 20,
+        "specializations": [
+            "Automobile",
+            "Carretto",
+            "Carrozza",
+            "Camion"
+        ]
+    },
+    "Individuare": {
+        "base_lvl": 25,
+        "specializations": []
+    },
+    "Insegnare": {
+        "base_lvl": 10,
+        "specializations": []
+    },
+    "Intuire": {
+        "base_lvl": 5,
+        "specializations": []
+    },
+    "Lanciare": {
+        "base_lvl": 25,
+        "specializations": []
+    },
+    "Leggere e Scrivere": {
+        "base_lvl": 0,
+        "specializations": []
+    },
+    "Lingua": {
+        "base_lvl": "INTx5",
+        "specializations": [
+            "Lingua Madre",
+            "Altra lingua"
+        ]
+    },
+    "Lotta": {
+        "base_lvl": 25,
+        "specializations": []
+    },
+    "Macchinario Pesante": {
+        "base_lvl": 1,
+        "specializations": [
+            "Presse Industriali",
+            "Trebbiatrici"
+        ]
+    },
+    "Medicina": {
+        "base_lvl": 5,
+        "specializations": []
+    },
+    "Nascondersi": {
+        "base_lvl": 10,
+        "specializations": []
+    },
+    "Nuotare": {
+        "base_lvl": 25,
+        "specializations": []
+    },
+    "Orientamento": {
+        "base_lvl": 10,
+        "specializations": []
+    },
+    "Percepire": {
+        "base_lvl": 10,
+        "specializations": []
+    },
+    "Persuadere": {
+        "base_lvl": 15,
+        "specializations": []
+    },
+    "Pilotare": {
+        "base_lvl": 1,
+        "specializations": [
+            "Veicolo aereo",
+            "Veicolo acquatico",
+            "Veicolo spaziale"
+        ]
+    },
+    "Primo Soccorso": {
+        "base_lvl": 30,
+        "specializations": []
+    },
+    "Proiettare": {
+        "base_lvl": "DESx2",
+        "specializations": []
+    },
+    "Psicoterapia": {
+        "base_lvl": 1,
+        "specializations": []
+    },
+    "Raggirare": {
+        "base_lvl": 5,
+        "specializations": []
+    },
+    "Rapidità di Mano": {
+        "base_lvl": 5,
+        "specializations": []
+    },
+    "Ricerca": {
+        "base_lvl": 25,
+        "specializations": []
+    },
+    "Riparazioni": {
+        "base_lvl": 15,
+        "specializations": [
+            "Elettriche",
+            "Elettroniche",
+            "Meccaniche",
+            "Strutturali",
+            "Quantiche"
+        ]
+    },
+    "Rissa": {
+        "base_lvl": 25,
+        "specializations": []
+    },
+    "Saltare": {
+        "base_lvl": 25,
+        "specializations": []
+    },
+    "Scalare": {
+        "base_lvl": 40,
+        "specializations": []
+    },
+    "Schivare": {
+        "base_lvl": "DESx2",
+        "specializations": []
+    },
+    "Scienza": {
+        "base_lvl": 1,
+        "specializations": [
+            "Astronomia",
+            "Biologia",
+            "Botanica",
+            "Chimica",
+            "Fisica",
+            "Genetica",
+            "Geologia",
+            "Matematica",
+            "Meteorologia",
+            "Zoologia"
+        ]
+    },
+    "Scudo": {
+        "base_lvl": 0,
+        "specializations": [
+            "Brocchiere",
+            "a Energia",
+            "Completo",
+            "Mezzo",
+            "Triangolare",
+            "Oplitico",
+            "a Goccia",
+            "Rotondo"
+        ]
+    },
+    "Seguire Tracce": {
+        "base_lvl": 10,
+        "specializations": []
+    },
+    "Status": {
+        "base_lvl": 15,
+        "specializations": [
+            "Città",
+            "Gruppo",
+            "Alta società",
+            "Religione",
+            "Specie"
+        ]
+    },
+    "Strategia": {
+        "base_lvl": 1,
+        "specializations": []
+    },
+    "Tecnologia": {
+        "base_lvl": 0,
+        "specializations": [
+            "Programmazione",
+            "Usare Computer",
+            "Elettronica",
+            "Robotica",
+            "Sensoristica",
+            "Macchine d'Assedio",
+            "Trappole"
+        ]
+    },
+    "Valutare": {
+        "base_lvl": 15,
+        "specializations": []
+    },
+    "Volare": {
+        "base_lvl": "DESx(1/2)",
+        "specializations": []
+    }
+}
