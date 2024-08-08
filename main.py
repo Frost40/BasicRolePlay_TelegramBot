@@ -1,9 +1,13 @@
+import os
+from lib2to3.fixes.fix_input import context
+
 from telegram.ext import Application, CallbackQueryHandler
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, \
     KeyboardButton
 from telegram.ext import CommandHandler, MessageHandler, filters, ConversationHandler, ContextTypes
 import json
 import re
+import math
 from utils import dice_roll
 from utils import dice_roll_check, calculate_skill_level
 
@@ -15,7 +19,7 @@ counter = 0  # Service int variable
 GENRE, DOMINANT_HAND, HEIGHT, DESCRIPTION, AGE, STATS, COS, TAG, INT, POT, DES, FAS, MOV, \
     STATS_MODIFIER, STATS_UPDATE, REDUCE_STAT, CONFIRM_REDUCTION, ADD_STAT, CONFIRM_ADD, PROFESSION, \
     SKILLS, CHOOSE_OPTIONAL_SKILLS, MENAGE_SPECIFIED_SKILL, ASSIGN_SKILL_POINTS, \
-    DISTINCTIVE_TRAITS, WEAPONS, ARMOR, EQUIPMENT = range(28)
+    DISTINCTIVE_TRAITS = range(25)
 
 MAX_CHAR_LENGTH = 255
 
@@ -567,7 +571,6 @@ async def confirm_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def new_pc_profession(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.name
     user_roll = update.message.text
-    print(tmp_user_data)
 
     extra_points = context.user_data['extra_points']
     if user_roll != "OK":
@@ -618,7 +621,6 @@ async def new_pc_profession(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def new_pc_skills(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.name
     user_roll = update.message.text
-    print(tmp_user_data)
 
     # Loading professions from json file
     with open("Json/professions.json", "r") as fp:
@@ -653,7 +655,6 @@ async def new_pc_skills(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif re.match(r".*\(.*\)$", skill) and '(qualsiasi)' not in skill:
             # Extracting info from skill
             content_in_parentheses = re.search(r"\((.*?)\)$", skill).group(1)
-            print(content_in_parentheses)
             skill_without_parentheses = re.sub(r" \(.*\)$", "", skill)
 
             skill_to_add = {content_in_parentheses: skills_list[skill_without_parentheses]['base_lvl']}
@@ -664,31 +665,13 @@ async def new_pc_skills(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # In case of no optional skills to select skips a state
     if optional_abilities_to_select == 0:
-        print("okkkkk")
-        skills = tmp_user_data[f"{user_id}"]["tmp_character"]["skills"]
-        for skill in skills:
-            tmp_user_data[f"{user_id}"]["tmp_character"]["skills"][skill] = calculate_skill_level(
-                tmp_user_data[f"{user_id}"]["tmp_character"], skill)
-
-        context.user_data['all_skills'] = skills
-        skills_message = "Here are your skills levels:\n"
-        for skill, level in skills.items():
-            skill_info = f"{skill}: {level}"
-            skills_message += skill_info + "\n"
-
-        print(context.user_data)
-
-        await update.message.reply_text(skills_message)
-        await update.message.reply_text("You currently have 300 points to increase your skills' level. Please type the"
-                                        "skill you want to improve followed by the number of points to use on it")
+        await preparing_assign_skill_points_state(user_id, update, context)
 
         return ASSIGN_SKILL_POINTS
     # Asking the player to select the optional skills
     skills_message = f"Your profession allows you to select {optional_abilities_to_select} of the following skills:\n\n"
     skills_message += "\n".join(f"- {skill}" for skill in optional_abilities)
     await update.message.reply_text(skills_message)
-
-    print(context.user_data.get('skills_to_analyze', []))
 
     return CHOOSE_OPTIONAL_SKILLS
 
@@ -697,13 +680,9 @@ async def choose_optional_skills(update: Update, context: ContextTypes.DEFAULT_T
     """Gets input from user and does validity check on the skills given."""
     user_id = update.effective_user.name
     user_message = update.message.text
-    print("entering choose_optional_skills")
-    print(tmp_user_data)
 
     # Split the user's message into a list of selected skills
     selected_skills = [skill.strip() for skill in user_message.split(',')]
-
-    print(selected_skills)
 
     # Getting info from context
     optional_abilities = context.user_data.get('optional_abilities', [])
@@ -727,19 +706,13 @@ async def choose_optional_skills(update: Update, context: ContextTypes.DEFAULT_T
         skills_list = json.load(fp)
 
     for skill in selected_skills:
-        print("1")
-        print(skill)
         if '(qualsiasi)' in skill:
-            print("entered qualsiasi skill")
             skill_without_parentheses = re.sub(r" \(.*\)$", "", skill)
             context.user_data['skills_to_analyze'].append(skill_without_parentheses)
         elif re.match(r".*\(.*\)$", skill) and '(qualsiasi)' not in skill:
-            print("2")
             # Extracting info from skill
             content_in_parentheses = re.search(r"\((.*?)\)$", skill).group(1)
             skill_without_parentheses = re.sub(r" \(.*\)$", "", skill)
-
-            print(content_in_parentheses)
 
             skill_to_add = {content_in_parentheses: skills_list[skill_without_parentheses]['base_lvl']}
             tmp_user_data[f"{user_id}"]["tmp_character"]["skills"].update(skill_to_add)
@@ -747,23 +720,18 @@ async def choose_optional_skills(update: Update, context: ContextTypes.DEFAULT_T
             skill_to_add = {skill: skills_list[skill]['base_lvl']}
             tmp_user_data[f"{user_id}"]["tmp_character"]["skills"].update(skill_to_add)
 
-    print(context.user_data.get('skills_to_analyze', []))
-
-    print(context.user_data)
-
     """
         Getting the skills to analyze saved in the context in order to
         show the list of them to the user. In case there are no more specified 
         skill to analyze returns the 'new_pc_distinctive_traits' state
     """
-    print("entering menage_specified_skill")
-    print(tmp_user_data)
-
     # Checking for empty list in context and getting first element
     skills_to_analyze = context.user_data.get('skills_to_analyze', [])
     if not skills_to_analyze:
-        print("entered if")
+        await preparing_assign_skill_points_state(user_id, update, context)
+
         return ASSIGN_SKILL_POINTS
+
     skill_to_analyze = skills_to_analyze[0]
 
     specialized_skills = skills_list[skill_to_analyze]['specializations']
@@ -785,7 +753,7 @@ async def menage_specified_skill(update: Update, context: ContextTypes.DEFAULT_T
         adds it to 'tmp_user_data', then returns itself until there are no more elements in the context list 'skills_to_analyze'
     """
     user_id = update.effective_user.name
-    user_roll = update.message.text
+    user_message = update.message.text
     print(tmp_user_data)
 
     # Loading skills from json file
@@ -795,7 +763,7 @@ async def menage_specified_skill(update: Update, context: ContextTypes.DEFAULT_T
     # Getting first element of the list in the context
     skill_to_analyze = context.user_data['skills_to_analyze'][0]
 
-    if user_roll not in skills_list[skill_to_analyze]['specializations']:
+    if user_message not in skills_list[skill_to_analyze]['specializations']:
         await update.message.reply_text("Please choose a valid skill!")
         return MENAGE_SPECIFIED_SKILL
 
@@ -803,7 +771,7 @@ async def menage_specified_skill(update: Update, context: ContextTypes.DEFAULT_T
     skill_to_analyze = context.user_data['skills_to_analyze'].pop(0)
 
     # Saving the skill in 'tmp_user_data'
-    skill_to_add = {skill_to_analyze: skills_list[skill_to_analyze]['base_lvl']}
+    skill_to_add = {user_message: skills_list[skill_to_analyze]['base_lvl']}
     tmp_user_data[f"{user_id}"]["tmp_character"]["skills"].update(skill_to_add)
 
     await update.message.reply_text("Your skills set have been correctly updated!")
@@ -816,25 +784,7 @@ async def menage_specified_skill(update: Update, context: ContextTypes.DEFAULT_T
             to choose how to spend his 300 skill_points
         """
         print("entered if")
-        # Updating the context
-        context.user_data.pop('skills_to_analyze', None)
-        context.user_data['skill_points'] = 300
-
-        skills = tmp_user_data[f"{user_id}"]["tmp_character"]["skills"]
-        for skill in skills:
-            tmp_user_data[f"{user_id}"]["tmp_character"]["skills"][skill] = calculate_skill_level(tmp_user_data[f"{user_id}"]["tmp_character"], skill)
-
-        context.user_data['all_skills'] = skills
-        skills_message = "Here are your skills levels:\n"
-        for skill, level in skills.items():
-            skill_info = f"{skill}: {level}"
-            skills_message += skill_info + "\n"
-
-        print(context.user_data)
-
-        await update.message.reply_text(skills_message)
-        await update.message.reply_text("You currently have 300 points to increase your skills' level. Please type the"
-                                        "skill you want to improve followed by the number of points to use on it")
+        await preparing_assign_skill_points_state(user_id, update, context)
 
         return ASSIGN_SKILL_POINTS
     skill_to_analyze = skills_to_analyze[0]
@@ -937,19 +887,147 @@ async def assign_skill_points(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def new_pc_distinctive_traits(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    return WEAPONS
+    """
+        Gets input from user. After validity check done on the length of distinctive_traits'
+        list written by the player saves the new parameters in 'tmp_user_data'.
+    """
+    user_id = update.effective_user.name
+    user_message = update.message.text
 
+    # Extracting info from context
+    number_of_distinctive_traits = context.user_data['number_of_distinctive_traits']
 
-async def new_pc_weapons(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    return ARMOR
+    distinctive_traits = [skill.strip() for skill in user_message.split(',')]
 
+    if len(distinctive_traits) != number_of_distinctive_traits:
+        await update.message.reply_text("Please enter the correct number of distinctive traits")
+        return DISTINCTIVE_TRAITS
 
-async def new_pc_armor(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    return EQUIPMENT
+    tmp_user_data[f"{user_id}"]["tmp_character"]["distinctive_traits"] = distinctive_traits
 
+    # Cleaning the context
+    context.user_data.pop('number_of_distinctive_traits', None)
 
-async def new_pc_equipment(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print(context.user_data)
+
+    # Completing and saving the new created character
+    new_pc_compute(user_id)
+
+    # Character created successfully
+    await update.message.reply_text("Character created successfully")
+
     return ConversationHandler.END
+
+
+def new_pc_compute(user_id: str):
+    """
+        Computes the remaining character info.
+        After that saves the 'tmp_character' in a json file
+    """
+    # Computing remaining character info
+    tag = tmp_user_data[f"{user_id}"]["tmp_character"]['stats']['tag']['value']
+
+    """
+        Function that helps compute the parameter 
+        'weight' for the newly created character
+    """
+    def get_weight_category(weight_level):
+        weight_categories = {
+            1: "underweight",
+            2: "skinny",
+            3: "fit",
+            4: "fat"
+        }
+        # Return weight category based on weight_level, or "overweight" in case weight_level > 4
+        return weight_categories.get(weight_level, "overweight")
+
+    tmp_user_data[f"{user_id}"]["tmp_character"]["weight"] = get_weight_category(tag // 6)
+
+    # Calculating hit points
+    hit_points = math.ceil(calculate_skill_level(tmp_user_data[f"{user_id}"]["tmp_character"], "COS+TAG") / 2)
+    tmp_user_data[f"{user_id}"]["tmp_character"]["hit_points"]["current"] = hit_points
+    tmp_user_data[f"{user_id}"]["tmp_character"]["hit_points"]["max"] = hit_points
+
+    # Calculating power points
+    power_points = tmp_user_data[f"{user_id}"]["tmp_character"]["stats"]["pot"]["value"]
+    tmp_user_data[f"{user_id}"]["tmp_character"]["power_points"]["current"] = power_points
+    tmp_user_data[f"{user_id}"]["tmp_character"]["power_points"]["max"] = power_points
+
+    # Assigning weapons
+    with open("Json/skills.json", "r") as fp:
+        all_skills = json.load(fp)
+
+    firearms = all_skills['Arma da Fuoco']["specializations"]
+    melee = all_skills['Arma da Mischia']["specializations"]
+    ranged = all_skills['Arma a Distanza']["specializations"]
+    heavy = all_skills['Arma Pesante']["specializations"]
+
+    for skill in tmp_user_data[f"{user_id}"]["tmp_character"]["skills"]:
+        if skill in firearms:
+            tmp_user_data[f"{user_id}"]["tmp_character"]["weapons"]["firearm"].append(skill)
+        elif skill in melee:
+            tmp_user_data[f"{user_id}"]["tmp_character"]["weapons"]["melee"].append(skill)
+        elif skill in ranged:
+            tmp_user_data[f"{user_id}"]["tmp_character"]["weapons"]["ranged"].append(skill)
+        elif skill in heavy:
+            tmp_user_data[f"{user_id}"]["tmp_character"]["weapons"]["heavy"].append(skill)
+
+
+    # Assigning equipment
+    with open("Json/professions.json", "r") as fp:
+        professions = json.load(fp)
+
+    profession = tmp_user_data[f"{user_id}"]["tmp_character"]["profession"]
+    equipment = professions[f"{profession}"]["clothes"]
+    tmp_user_data[f"{user_id}"]["tmp_character"]["equipment"] = equipment
+
+    # Calculating cash
+    status_level = tmp_user_data[f"{user_id}"]["tmp_character"]["skills"].get('Status', 0)
+    tmp_user_data[f"{user_id}"]["tmp_character"]["cash"] = status_level * 5
+
+    print(tmp_user_data[f"{user_id}"]["tmp_character"])
+
+    # saving character in json file
+    os.makedirs("Json/users", exist_ok=True)
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_info = json.load(fp)
+    except FileNotFoundError:
+        user_info = {}
+
+    # name conversion into lower case to standardize keys:
+    pc_name_key = ("_".join(tmp_user_data[f'{user_id}']['tmp_character']['name'].split())).lower()
+    user_info[f"{pc_name_key}"] = tmp_user_data[f"{user_id}"]["tmp_character"]
+
+    with open(f"Json/users/{user_id}.json", "w") as fp:
+        json.dump(user_info, fp, indent=4)
+
+    tmp_user_data.pop(f"{user_id}")
+
+
+async def preparing_assign_skill_points_state(user_id: str, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
+    context.user_data['skill_points'] = 300
+
+    skills = tmp_user_data[f"{user_id}"]["tmp_character"]["skills"]
+    for skill in skills:
+        tmp_user_data[f"{user_id}"]["tmp_character"]["skills"][skill] = calculate_skill_level(
+            tmp_user_data[f"{user_id}"]["tmp_character"],
+            tmp_user_data[f"{user_id}"]["tmp_character"]["skills"][skill])
+
+    context.user_data['all_skills'] = skills
+    skills_message = "Here are your skills levels:\n"
+    for skill, level in skills.items():
+        skill_info = f"{skill}: {level}"
+        skills_message += skill_info + "\n"
+
+    print(context.user_data)
+
+    await update.message.reply_text(skills_message)
+    await update.message.reply_text("You currently have 300 points to increase your skills' level. Please type the"
+                                    "skill you want to improve followed by the number of points to use on it")
+
+    return
 
 
 def main():
@@ -986,10 +1064,7 @@ def main():
             CHOOSE_OPTIONAL_SKILLS: [MessageHandler(filters.TEXT & ~filters.COMMAND, choose_optional_skills)],
             MENAGE_SPECIFIED_SKILL: [MessageHandler(filters.TEXT & ~filters.COMMAND, menage_specified_skill)],
             ASSIGN_SKILL_POINTS: [MessageHandler(filters.TEXT & ~filters.COMMAND, assign_skill_points)],
-            DISTINCTIVE_TRAITS: [MessageHandler(filters.TEXT & ~filters.COMMAND, new_pc_distinctive_traits)],
-            WEAPONS: [MessageHandler(filters.TEXT & ~filters.COMMAND, new_pc_weapons)],
-            ARMOR: [MessageHandler(filters.TEXT & ~filters.COMMAND, new_pc_armor)],
-            EQUIPMENT: [MessageHandler(filters.TEXT & ~filters.COMMAND, new_pc_equipment)]
+            DISTINCTIVE_TRAITS: [MessageHandler(filters.TEXT & ~filters.COMMAND, new_pc_distinctive_traits)]
         },
         fallbacks=[CommandHandler('cancel', cancel)]
     )

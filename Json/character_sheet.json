@@ -7,7 +7,7 @@
     "weight": "",
     "description": "",
     "age": "",
-    "distinctive_traits": "",
+    "distinctive_traits": [],
     "profession": "",
     "level": 1,
     "stats":
@@ -21,15 +21,16 @@
         "fas": {"value": 0, "modifier": 3},
         "mov": {"value": 0, "modifier": 3}
     },
-    "hit_points": {"current": "", "max": ""},
+    "hit_points": {"current": 0, "max": 0},
     "power_points": {"current": 0, "max": 0},
     "skills": {},
     "weapons": {
+        "firearm": [],
         "melee": [],
-        "ranged": []
+        "ranged": [],
+        "heavy": []
     },
     "armor": [],
     "equipment": [],
-    "cash": 0,
-    "bank": 0
+    "cash": 0
 }

@@ -42,11 +42,8 @@ def dice_roll_check(rolls, dice_type, user_roll):
     return {'message': message, 'rolls_total': rolls_total}
 
 
-def calculate_skill_level(character, skill_name):
-    skills = character["skills"]
+def calculate_skill_level(character, skill_level):
     stats = character["stats"]
-
-    skill_level = skills.get(skill_name, None)
 
     if skill_level is None:
         return None

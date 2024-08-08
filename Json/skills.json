@@ -14,13 +14,6 @@
             "Lancia"
         ]
     },
-    "Arma a Energia": {
-        "base_lvl": 0,
-        "specializations": [
-            "Pistola a Energia",
-            "Fucile a Energia"
-        ]
-    },
     "Arma da Fuoco": {
         "base_lvl": 0,
         "specializations": [

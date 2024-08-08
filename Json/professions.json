@@ -1,62 +1,74 @@
 {
     "Cacciatore": {
-      "fixed_abilities": ["Ascoltare", "Furtività", "Individuare", "Nascondersi", "Orientamento", "Scalare", "Seguire Tracce"],
-      "optional_abilities": ["Arma a Distanza (qualsiasi)", "Arma da Fuoco (Fucile)", "Arma da Mischia (Lancia)", "Cavalcare", "Conoscenza (Folklore)", "Lingua (Altra lingua)"],
-      "optional_abilities_to_select": 3
+        "fixed_abilities": ["Ascoltare", "Furtività", "Individuare", "Nascondersi", "Orientamento", "Scalare", "Seguire Tracce"],
+        "optional_abilities": ["Arma a Distanza (qualsiasi)", "Arma da Fuoco (Fucile)", "Arma da Mischia (Lancia)", "Cavalcare", "Conoscenza (Folklore)", "Lingua (Altra lingua)"],
+        "optional_abilities_to_select": 3,
+        "clothes": ["Giacca di pelle", "Stivali robusti", "Cappello a tesa larga", "Zaino da caccia"]
     },
     "Cowboy": {
-      "fixed_abilities": ["Arma da Fuoco (Fucile)", "Artigianato (Nodi)", "Ascoltare", "Cavalcare", "Conoscenza (Folklore)", "Individuare", "Lanciare", "Orientamento", "Seguire Tracce"],
-      "optional_abilities": [],
-      "optional_abilities_to_select": 0
+        "fixed_abilities": ["Arma da Fuoco (Fucile)", "Artigianato (Nodi)", "Ascoltare", "Cavalcare", "Conoscenza (Folklore)", "Individuare", "Lanciare", "Orientamento", "Seguire Tracce"],
+        "optional_abilities": [],
+        "optional_abilities_to_select": 0,
+        "clothes": ["Cappello da cowboy", "Camicia a quadri", "Jeans", "Stivali di pelle", "Cintura con fibbia"]
     },
     "Guerriero": {
-      "fixed_abilities": ["Arma a Distanza (qualsiasi)", "Arma da Mischia (qualsiasi)", "Lotta", "Rissa", "Schivare"],
-      "optional_abilities": ["Arma da Fuoco (qualsiasi)", "Arti Marziali", "Ascoltare", "Cavalcare", "Furtività", "Individuare", "Lanciare", "Lingua (Altra lingua)", "Nascondersi", "Nuotare", "Saltare", "Scalare", "Seguire Tracce"],
-      "optional_abilities_to_select": 5
+        "fixed_abilities": ["Arma a Distanza (qualsiasi)", "Arma da Mischia (qualsiasi)", "Lotta", "Rissa", "Schivare"],
+        "optional_abilities": ["Arma da Fuoco (qualsiasi)", "Arti Marziali", "Ascoltare", "Cavalcare", "Furtività", "Individuare", "Lanciare", "Lingua (Altra lingua)", "Nascondersi", "Nuotare", "Saltare", "Scalare", "Seguire Tracce"],
+        "optional_abilities_to_select": 5,
+        "clothes": ["Armatura leggera", "Stivali corazzati", "Cintura per armi", "Mantello da battaglia"]
     },
     "Investigatore": {
-      "fixed_abilities": ["Arma da Fuoco (Pistola)", "Ascoltare", "Conoscenza (Legge)", "Individuare", "Persuadere", "Ricerca"],
-      "optional_abilities": ["Arma da Fuoco (qualsiasi)", "Arte", "Camuffare", "Cavalcare", "Conoscenza (qualsiasi)", "Furtività", "Guidare", "Intuire", "Lingua (Lingua Madre)", "Lingua (Altra lingua)", "Lotta", "Medicina", "Nascondersi", "Raggirare", "Rissa", "Schivare", "Scienza (qualsiasi)", "Seguire Tracce", "Tecnologia (Usare Computer)"],
-      "optional_abilities_to_select": 4
+        "fixed_abilities": ["Arma da Fuoco (Pistola)", "Ascoltare", "Conoscenza (Legge)", "Individuare", "Persuadere", "Ricerca"],
+        "optional_abilities": ["Arma da Fuoco (qualsiasi)", "Arte", "Camuffare", "Cavalcare", "Conoscenza (qualsiasi)", "Furtività", "Guidare", "Intuire", "Lingua (Lingua Madre)", "Lingua (Altra lingua)", "Lotta", "Medicina", "Nascondersi", "Raggirare", "Rissa", "Schivare", "Scienza (qualsiasi)", "Seguire Tracce", "Tecnologia (Usare Computer)"],
+        "optional_abilities_to_select": 4,
+        "clothes": ["Trench coat", "Cappello fedora", "Scarpe eleganti", "Guanti di pelle"]
     },
     "Ladro": {
-      "fixed_abilities": ["Furtività", "Nascondersi", "Raggirare", "Schivare", "Valutare"],
-      "optional_abilities": ["Abilità Manuale", "Arma da Fuoco (Pistola)", "Ascoltare", "Camuffare", "Conoscenza (Legge)", "Contrattare", "Individuare", "Intuire", "Lotta", "Persuadere", "Riparazioni (Meccaniche)", "Rissa", "Saltare", "Scalare"],
-      "optional_abilities_to_select": 5
+        "fixed_abilities": ["Furtività", "Nascondersi", "Raggirare", "Schivare", "Valutare"],
+        "optional_abilities": ["Abilità Manuale", "Arma da Fuoco (Pistola)", "Ascoltare", "Camuffare", "Conoscenza (Legge)", "Contrattare", "Individuare", "Intuire", "Lotta", "Persuadere", "Riparazioni (Meccaniche)", "Rissa", "Saltare", "Scalare"],
+        "optional_abilities_to_select": 5,
+        "clothes": ["Tunica scura", "Guanti senza dita", "Stivaletti silenziosi", "Cappa con cappuccio"]
     },
     "Marinaio": {
-      "fixed_abilities": ["Artigianato (qualsiasi)", "Lotta", "Nuotare", "Orientamento", "Pilotare (Veicolo acquatico)", "Scalare", "Schivare"],
-      "optional_abilities": ["Artiglieria (qualsiasi, solitamente Navale)", "Ascoltare", "Comandare", "Individuare", "Lingua (Altra lingua)", "Riparazioni (Meccaniche)", "Riparazioni (Strutturali)"],
-      "optional_abilities_to_select": 3
+        "fixed_abilities": ["Artigianato (qualsiasi)", "Lotta", "Nuotare", "Orientamento", "Pilotare (Veicolo acquatico)", "Scalare", "Schivare"],
+        "optional_abilities": ["Artiglieria (qualsiasi)", "Ascoltare", "Comandare", "Individuare", "Lingua (Altra lingua)", "Riparazioni (Meccaniche)", "Riparazioni (Strutturali)"],
+        "optional_abilities_to_select": 3,
+        "clothes": ["Giacca da marinaio", "Stivali impermeabili", "Berretto", "Sciarpa di lana"]
     },
     "Medico": {
-      "fixed_abilities": ["Individuare", "Lingua (Lingua Madre)", "Medicina", "Persuadere", "Primo Soccorso", "Ricerca"],
-      "optional_abilities": ["Intuire", "Lingua (Altra lingua)", "Psicoterapia", "Scienza (qualsiasi)", "Status"],
-      "optional_abilities_to_select": 4
+        "fixed_abilities": ["Individuare", "Lingua (Lingua Madre)", "Medicina", "Persuadere", "Primo Soccorso", "Ricerca"],
+        "optional_abilities": ["Intuire", "Lingua (Altra lingua)", "Psicoterapia", "Scienza (qualsiasi)", "Status"],
+        "optional_abilities_to_select": 4,
+        "clothes": ["Camice bianco", "Guanti chirurgici", "Scarpe comode", "Borsa medica"]
     },
     "Nobile": {
-      "fixed_abilities": ["Contrattare", "Galateo", "Guidare", "Leggere e Scrivere", "Lingua (Lingua Madre)", "Lingua (Altra lingua)", "Status"],
-      "optional_abilities": [],
-      "optional_abilities_to_select": 0
+        "fixed_abilities": ["Contrattare", "Galateo", "Guidare", "Leggere e Scrivere", "Lingua (Lingua Madre)", "Lingua (Altra lingua)", "Status"],
+        "optional_abilities": [],
+        "optional_abilities_to_select": 0,
+        "clothes": ["Abito elegante", "Guanti di seta", "Cappello a cilindro", "Scarpe di cuoio"]
     },
     "Scienziato": {
-      "fixed_abilities": ["Artigianato (qualsiasi)", "Persuadere", "Ricerca", "Status", "Tecnologia (Usare Computer)", "Macchinario Pesante (qualsiasi)"],
-      "optional_abilities": ["Conoscenza (Antropologia)", "Conoscenza (Archeologia)", "Conoscenza (Area)", "Scienza (Astronomia)", "Scienza (Biologia)", "Scienza (Chimica)", "Scienza (Fisica)", "Scienza (Genetica)", "Scienza (Zoologia)"],
-      "optional_abilities_to_select": 4
+        "fixed_abilities": ["Artigianato (qualsiasi)", "Persuadere", "Ricerca", "Status", "Tecnologia (Usare Computer)", "Macchinario Pesante (qualsiasi)"],
+        "optional_abilities": ["Conoscenza (Antropologia)", "Conoscenza (Archeologia)", "Conoscenza (Area)", "Scienza (Astronomia)", "Scienza (Biologia)", "Scienza (Chimica)", "Scienza (Fisica)", "Scienza (Genetica)", "Scienza (Zoologia)"],
+        "optional_abilities_to_select": 4,
+        "clothes": ["Camice da laboratorio", "Occhiali protettivi", "Scarpe antinfortunistiche", "Guanti in lattice"]
     },
     "Soldato": {
-      "fixed_abilities": ["Primo Soccorso", "Rissa", "Scalare", "Schivare"],
-      "optional_abilities": ["Arma a Distanza (qualsiasi)", "Arma da Fuoco (qualsiasi)", "Arma da Mischia (qualsiasi)", "Arma Pesante (qualsiasi)", "Artiglieria (qualsiasi)", "Ascoltare", "Cavalcare", "Comandare", "Furtività", "Guidare", "Individuare", "Lanciare", "Lingua (Altra lingua)", "Lotta", "Medicina", "Nascondersi", "Orientamento", "Riparazioni (Meccaniche)", "Saltare"],
-      "optional_abilities_to_select": 6
+        "fixed_abilities": ["Primo Soccorso", "Rissa", "Scalare", "Schivare"],
+        "optional_abilities": ["Arma a Distanza (qualsiasi)", "Arma da Fuoco (qualsiasi)", "Arma da Mischia (qualsiasi)", "Arma Pesante (qualsiasi)", "Artiglieria (qualsiasi)", "Ascoltare", "Cavalcare", "Comandare", "Furtività", "Guidare", "Individuare", "Lanciare", "Lingua (Altra lingua)", "Lotta", "Medicina", "Nascondersi", "Orientamento", "Riparazioni (Meccaniche)", "Saltare"],
+        "optional_abilities_to_select": 6,
+        "clothes": ["Uniforme militare", "Stivali da combattimento", "Elmetto", "Cintura tattica"]
     },
     "Spia": {
-      "fixed_abilities": ["Ascoltare", "Furtività", "Individuare", "Nascondersi", "Raggirare", "Ricerca", "Schivare"],
-      "optional_abilities": ["Arma da Fuoco (qualsiasi)", "Arte (Fotografia)", "Arti Marziali", "Camuffare", "Cavalcare", "Conoscenza (qualsiasi)", "Galateo", "Intuire", "Lanciare", "Lingua (Lingua Madre)", "Lingua (Altra lingua)", "Lotta", "Orientamento", "Nuotare", "Pilotare (qualsiasi)", "Riparazioni (Elettroniche)", "Riparazioni (Meccaniche)", "Rissa", "Seguire Tracce", "Tecnologia (Usare Computer)"],
-      "optional_abilities_to_select": 3
+        "fixed_abilities": ["Ascoltare", "Furtività", "Individuare", "Nascondersi", "Raggirare", "Ricerca", "Schivare"],
+        "optional_abilities": ["Arma da Fuoco (qualsiasi)", "Arte (Fotografia)", "Arti Marziali", "Camuffare", "Cavalcare", "Conoscenza (qualsiasi)", "Galateo", "Intuire", "Lanciare", "Lingua (Lingua Madre)", "Lingua (Altra lingua)", "Lotta", "Orientamento", "Nuotare", "Pilotare (qualsiasi)", "Riparazioni (Elettroniche)", "Riparazioni (Meccaniche)", "Rissa", "Seguire Tracce", "Tecnologia (Usare Computer)"],
+        "optional_abilities_to_select": 3,
+        "clothes": ["Abito scuro", "Occhiali da sole", "Scarpe leggere", "Cintura con gadget nascosti"]
     },
     "Tutore della Legge": {
       "fixed_abilities": ["Ascoltare", "Conoscenza (Legge)", "Individuare", "Raggirare", "Rissa", "Schivare"],
       "optional_abilities": ["Arma a Distanza (qualsiasi)", "Arma da Fuoco (qualsiasi)", "Arma da Mischia (qualsiasi)", "Arti Marziali", "Cavalcare", "Conoscenza (Gruppo)", "Guidare", "Intuire", "Lingua (Altra lingua)", "Lotta", "Pilotare (qualsiasi)", "Primo Soccorso", "Seguire Tracce", "Status", "Tecnologia (Usare Computer)"],
-      "optional_abilities_to_select": 4
+      "optional_abilities_to_select": 4,
+      "clothes": ["Divisa da poliziotto", "Cintura con distintivo", "Stivali da servizio", "Cappello da ufficiale"]
     }
 }
