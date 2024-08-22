@@ -1,0 +1,154 @@
+{
+    "Alabarda": {
+        "skill": "Arma Inastata",
+        "base": 15,
+        "damage": "3D6",
+        "hands": "2M",
+        "hit_points": 25,
+        "range": 0
+    },
+    "Ascia a Due Mani": {
+        "skill": "Ascia",
+        "base": 15,
+        "damage": "2D6+2",
+        "hands": "2M",
+        "hit_points": 15,
+        "range": 0
+    },
+    "Ascia Piccola": {
+        "skill": "Ascia",
+        "base": 15,
+        "damage": "1D6+1",
+        "hands": "1M",
+        "hit_points": 12,
+        "range": 0
+    },
+    "Ascia da Battaglia": {
+        "skill": "Ascia",
+        "base": 15,
+        "damage": "1D8+2",
+        "hands": "1M",
+        "hit_points": 15,
+        "range": 0
+    },
+    "Bastone a Due Mani": {
+        "skill": "Bastone",
+        "base": 25,
+        "damage": "1D8",
+        "hands": "2M",
+        "hit_points": 8,
+        "range": 0
+    },
+    "Coltello": {
+        "skill": "Pugnale",
+        "base": 25,
+        "damage": "1D3+1",
+        "hands": "1M",
+        "hit_points": 15,
+        "range": 0
+    },
+    "Lancia Lunga": {
+        "skill": "Lancia",
+        "base": 15,
+        "damage": "1D10",
+        "hands": "2M",
+        "hit_points": 10,
+        "range": 0
+    },
+    "Martello": {
+        "skill": "Martello",
+        "base": 25,
+        "damage": "1D6",
+        "hands": "1M",
+        "hit_points": 15,
+        "range": 0
+    },
+    "Martello a Due Mani": {
+        "skill": "Martello",
+        "base": 25,
+        "damage": "1D10+3",
+        "hands": "2M",
+        "hit_points": 15,
+        "range": 0
+    },
+    "Mazza Leggera": {
+        "skill": "Mazza",
+        "Base": 25,
+        "damage": "1D6+2",
+        "hands": "1M",
+        "hit_points": 6,
+        "range": 0
+    },
+    "Mazza Pesante": {
+        "skill": "Mazza",
+        "base": 25,
+        "damage": "1D8+2",
+        "hands": "2M",
+        "hit_points": 10,
+        "range": 0
+    },
+    "Picca": {
+        "skill": "Arma Inastata",
+        "base": 15,
+        "damage": "1D10+2",
+        "hands": "2M",
+        "hit_points": 12,
+        "range": 0
+    },
+    "Pugnale": {
+        "skill": "Pugnale",
+        "base": 25,
+        "damage": "1D4",
+        "hands": "1M",
+        "hit_points": 15,
+        "range": 0
+    },
+    "Randello Leggero": {
+        "skill": "Randello",
+        "base": 25,
+        "damage": "1D6",
+        "hands": "1M",
+        "hit_points": 15,
+        "range": 0
+    },
+    "Randello Pesante": {
+        "skill": "Randello",
+        "base": 25,
+        "damage": "1D8",
+        "hands": "2M",
+        "hit_points": 22,
+        "range": 0
+    },
+    "Rissa": {
+        "skill": "Rissa",
+        "base": 25,
+        "damage": "1D3",
+        "hands": "1M",
+        "hit_points": null,
+        "range": 0
+    },
+    "Spada a Due Mani": {
+        "skill": "Spada",
+        "base": 5,
+        "damage": "2D8",
+        "hands": "2M",
+        "hit_points": 12,
+        "range": 0
+    },
+    "Spada Corta": {
+        "skill": "Spada",
+        "base": 15,
+        "damage": "1D6+1",
+        "hands": "1M",
+        "hit_points": 12,
+        "range": 0
+    },
+    "Spadone": {
+        "skill": "Spada",
+        "base": 15,
+        "damage": "1D8+1",
+        "hands": "1M",
+        "hit_points": 12,
+        "range": 0
+    }
+}

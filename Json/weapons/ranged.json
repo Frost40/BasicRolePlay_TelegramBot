@@ -1,0 +1,74 @@
+{
+    "Arco Lungo": {
+        "skill": "Arco",
+        "base": 5,
+        "damage": "1D8+1",
+        "hands": 2,
+        "hit_points": 10,
+        "range": 90
+    },
+    "Ascia Piccola (Lancio)": {
+        "skill": "Ascia",
+        "base": 10,
+        "damage": "1D6",
+        "hands": 1,
+        "hit_points": 12,
+        "range": 20
+    },
+    "Balestra Leggera": {
+        "skill": "Balestra",
+        "base": 25,
+        "damage": "1D6+2",
+        "hands": 2,
+        "hit_points": 10,
+        "range": 40
+    },
+    "Balestra Pesante": {
+        "skill": "Balestra",
+        "base": 25,
+        "damage": "2D6+2",
+        "hands": 2,
+        "hit_points": 18,
+        "range": 55
+    },
+    "Coltello (Lancio)": {
+        "skill": "Pugnale",
+        "base": 15,
+        "damage": "1D3+1",
+        "hands": 1,
+        "hit_points": 10,
+        "range": 10
+    },
+    "Fionda": {
+        "skill": "Fionda",
+        "base": 5,
+        "damage": "1D8",
+        "hands": 2,
+        "hit_points": 2,
+        "range": 80
+    },
+    "Pietra (Lancio)": {
+        "skill": "Lanciare",
+        "base": 5,
+        "damage": "1D2",
+        "hands": 1,
+        "hit_points": null,
+        "range": 20
+    },
+    "Pugnale (Lancio)": {
+        "skill": "Pugnale",
+        "base": 15,
+        "damage": "1D4",
+        "hands": 1,
+        "hit_points": 15,
+        "range": 10
+    },
+    "Pilum": {
+        "skill": "Lancia",
+        "base": 15,
+        "damage": "1D4+1",
+        "hands": 1,
+        "hit_points": 15,
+        "range": 15
+    }
+}

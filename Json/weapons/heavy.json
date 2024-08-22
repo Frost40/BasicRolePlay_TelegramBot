@@ -1,0 +1,58 @@
+{
+    "Bazooka": {
+        "skill": "Bazooka",
+        "base": 15,
+        "damage": "4D10",
+        "hands": 2,
+        "hit_points": 20,
+        "range": 200
+    },
+    "Mitragliatrice Pesante": {
+        "skill": "Mitragliatrice Pesante",
+        "base": 25,
+        "damage": "3D6+6",
+        "hands": 2,
+        "hit_points": 18,
+        "range": 150
+    },
+    "Minigun": {
+        "skill": "Minigun",
+        "base": 30,
+        "damage": "4D6+4",
+        "hands": 2,
+        "hit_points": 22,
+        "range": 100
+    },
+    "Lanciarazzi": {
+        "skill": "Lanciarazzi",
+        "base": 20,
+        "damage": "5D10",
+        "hands": 2,
+        "hit_points": 25,
+        "range": 250
+    },
+    "Lanciafiamme": {
+        "skill": "Lanciafiamme",
+        "base": 20,
+        "damage": "3D8",
+        "hands": 2,
+        "hit_points": 15,
+        "range": 30
+    },
+    "Cannone": {
+        "skill": "Cannone",
+        "base": 10,
+        "damage": "6D10",
+        "hands": 2,
+        "hit_points": 30,
+        "range": 300
+    },
+    "Mortai": {
+        "skill": "Macchina d'Assedio",
+        "base": 15,
+        "damage": "5D8",
+        "hands": 2,
+        "hit_points": 25,
+        "range": 250
+    }
+}

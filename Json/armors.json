@@ -1,0 +1,50 @@
+{
+    "Armatura a Piastre Completa": {
+        "Armor Points": 8,
+        "Skill Modifier": "-25% to physical skills"
+    },
+    "Armatura di Cuoio Morbido": {
+        "Armor Points": 1,
+        "Skill Modifier": "None"
+    },
+    "Armatura di Cuoio Rigido": {
+        "Armor Points": 2,
+        "Skill Modifier": "-10% to physical skills"
+    },
+    "Armatura di Maglia": {
+        "Armor Points": 7,
+        "Skill Modifier": "-20% to physical skills"
+    },
+    "Armatura Imbottita": {
+        "Armor Points": 2,
+        "Skill Modifier": "-5% to physical skills"
+    },
+    "Assetto Antisommossa": {
+        "Armor Points": "12/6",
+        "Skill Modifier": "-10% to physical skills"
+    },
+    "Elmo Leggero": {
+        "Armor Points": "+1",
+        "Skill Modifier": "-15% to perceptive skills"
+    },
+    "Elmo Pesante": {
+        "Armor Points": "+2",
+        "Skill Modifier": "-50% to perceptive skills"
+    },
+    "Giubbotto Antiproiettile": {
+        "Armor Points": 8,
+        "Skill Modifier": "-5% to physical skills"
+    },
+    "Giubbotto Paraschegge": {
+        "Armor Points": 4,
+        "Skill Modifier": "-10% to physical skills"
+    },
+    "Panoplia Oplitica": {
+        "Armor Points": 6,
+        "Skill Modifier": "-20% to physical skills"
+    },
+    "Vestiti Pesanti": {
+        "Armor Points": 1,
+        "Skill Modifier": "None"
+    }
+}

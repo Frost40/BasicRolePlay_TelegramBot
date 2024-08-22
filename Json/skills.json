@@ -11,7 +11,8 @@
         "specializations": [
             "Arco",
             "Balestra",
-            "Lancia"
+            "Lancia",
+            "Fionda"
         ]
     },
     "Arma da Fuoco": {
@@ -37,7 +38,9 @@
             "Mazzafrusto",
             "Pugnale",
             "Randello",
-            "Spada"
+            "Spada Corta",
+            "Spada a Due Mani",
+            "Spadone"
         ]
     },
     "Arma Pesante": {
@@ -46,7 +49,8 @@
             "Bazooka",
             "Mitragliatrice Pesante",
             "Minigun",
-            "Lanciarazzi"
+            "Lanciarazzi",
+            "Lanciafiamme"
         ]
     },
     "Arte": {
@@ -341,7 +345,7 @@
         "specializations": []
     },
     "Volare": {
-        "base_lvl": "DESx(1/2)",
+        "base_lvl": "DESx0,5 ",
         "specializations": []
     }
 }

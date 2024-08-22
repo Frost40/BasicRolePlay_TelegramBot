@@ -1,0 +1,74 @@
+{
+    "Fucile d'Assalto": {
+        "skill": "Fucile",
+        "base": 30,
+        "damage": "2D8",
+        "hands": 2,
+        "hit_points": 14,
+        "range": 100
+    },
+    "Pistola Semiautomatica": {
+        "skill": "Pistola",
+        "base": 25,
+        "damage": "1D10",
+        "hands": 1,
+        "hit_points": 10,
+        "range": 25
+    },
+    "Fucile a Pompa": {
+        "skill": "Shotgun",
+        "base": 20,
+        "damage": "3D6",
+        "hands": 2,
+        "hit_points": 15,
+        "range": 30
+    },
+    "Mitragliatrice Leggera": {
+        "skill": "Mitragliatrice",
+        "base": 35,
+        "damage": "2D6+4",
+        "hands": 2,
+        "hit_points": 16,
+        "range": 90
+    },
+    "Revolver": {
+        "skill": "Revolver",
+        "base": 25,
+        "damage": "1D12",
+        "hands": 1,
+        "hit_points": 12,
+        "range": 25
+    },
+    "Fucile da Caccia": {
+        "skill": "Fucile",
+        "base": 30,
+        "damage": "2D10",
+        "hands": 2,
+        "hit_points": 14,
+        "range": 120
+    },
+    "Pistola a Tamburo": {
+        "skill": "Pistola",
+        "base": 20,
+        "damage": "1D8+2",
+        "hands": 1,
+        "hit_points": 8,
+        "range": 20
+    },
+        "Fucile": {
+        "skill": "Fucile",
+        "base": 25,
+        "damage": "2D6",
+        "hands": 2,
+        "hit_points": 12,
+        "range": 80
+    },
+        "Pistola": {
+        "skill": "Pistola",
+        "base": 20,
+        "damage": "1D8",
+        "hands": 1,
+        "hit_points": 8,
+        "range": 20
+    }
+}

@@ -1,0 +1,38 @@
+{
+    "A Goccia": {
+        "Base Probability": 15,
+        "Skill": "Shield",
+        "Hit Points": 16,
+        "Damage": "1D4"
+    },
+    "Antisommossa": {
+        "Base Probability": 15,
+        "Skill": "Shield",
+        "Hit Points": 16,
+        "Damage": "1D3"
+    },
+    "Triangolare": {
+        "Base Probability": 15,
+        "Skill": "Shield",
+        "Hit Points": 12,
+        "Damage": "1D3"
+    },
+    "Oplitico": {
+        "Base Probability": 15,
+        "Skill": "Shield",
+        "Hit Points": 16,
+        "Damage": "1D4"
+    },
+    "Piccolo": {
+        "Base Probability": 15,
+        "Skill": "Shield",
+        "Hit Points": 12,
+        "Damage": "1D2"
+    },
+    "Rotondo": {
+        "Base Probability": 15,
+        "Skill": "Shield",
+        "Hit Points": 12,
+        "Damage": "1D3"
+    }
+}

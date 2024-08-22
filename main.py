@@ -1,19 +1,19 @@
 import os
+from asyncore import dispatcher
 from lib2to3.fixes.fix_input import context
 
-from telegram.ext import Application, CallbackQueryHandler
+from telegram.ext import Application, CallbackQueryHandler, CallbackContext
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, \
     KeyboardButton
 from telegram.ext import CommandHandler, MessageHandler, filters, ConversationHandler, ContextTypes
 import json
 import re
 import math
-from utils import dice_roll
+from utils import dice_roll, calculate_hit_probability, calculate_roll_expression
 from utils import dice_roll_check, calculate_skill_level
 
 # Global info
 tmp_user_data = {}  # User data temp info
-counter = 0  # Service int variable
 
 # character creation stages
 GENRE, DOMINANT_HAND, HEIGHT, DESCRIPTION, AGE, STATS, COS, TAG, INT, POT, DES, FAS, MOV, \
@@ -50,7 +50,9 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def new_pc_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("You want to create a new character! Please tell me his name")
+    await update.message.reply_text("You want to create a new character! "
+                                    "Remember that in each step you can undo the character by typing '/cancel'")
+    await update.message.reply_text("Please tell me his name")
     return GENRE
 
 
@@ -972,7 +974,6 @@ def new_pc_compute(user_id: str):
         elif skill in heavy:
             tmp_user_data[f"{user_id}"]["tmp_character"]["weapons"]["heavy"].append(skill)
 
-
     # Assigning equipment
     with open("Json/professions.json", "r") as fp:
         professions = json.load(fp)
@@ -1005,6 +1006,1380 @@ def new_pc_compute(user_id: str):
     tmp_user_data.pop(f"{user_id}")
 
 
+async def view_character(update: Update, context: CallbackContext):
+    """Display all character info"""
+    user_id = update.effective_user.name
+
+    # Pattern per verificare che l'input contenga solo un nome
+    pattern = "^[^,]+$"
+    input_text = " ".join(context.args)  # Unisce gli argomenti in una singola stringa
+    if not re.fullmatch(pattern, input_text):
+        await update.message.reply_text("Correct usage:\n\"/view_character <character name>\"")
+        return
+
+    # Formatting character's name for json access
+    pc_name = " ".join(input_text.split())
+    pc = "_".join(input_text.lower().split())
+
+    try:
+        # Carica il file JSON del personaggio
+        with open(f"Json/users/{user_id}.json", "r") as file:
+            all_character = json.load(file)
+            character = all_character[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+    except FileNotFoundError:
+        print("File del personaggio non trovato.")
+        return
+    except json.JSONDecodeError:
+        print("Errore nella decodifica del file JSON.")
+        return
+
+    # Extracting character data
+    name = character.get("name", "N/A")
+    race = character.get("race", "N/A")
+    genre = character.get("genre", "N/A")
+    dominant_hand = character.get("dominant_hand", "N/A")
+    height = character.get("height", "N/A")
+    weight = character.get("weight", "N/A")
+    description = character.get("description", "N/A")
+    age = character.get("age", "N/A")
+    distinctive_traits = ", ".join(character.get("distinctive_traits", []))
+    profession = character.get("profession", "N/A")
+    level = character.get("level", 1)
+
+    stats = character.get("stats", {})
+    hit_points = character.get("hit_points", {"current": 0, "max": 0})
+    power_points = character.get("power_points", {"current": 0, "max": 0})
+
+    skills = character.get("skills", {})
+    weapons = character.get("weapons", {})
+    armor = ", ".join(character.get("armor", []))
+    shield = ", ".join(character.get("shield", []))
+    equipment = ", ".join(character.get("equipment", []))
+    cash = character.get("cash", 0)
+
+    # Costruisci la sezione delle skill
+    skills_text = ""
+    if skills:
+        skills_text = "**Skill:**\n" + "\n".join([f"  {skill}: level {level}" for skill, level in skills.items()])
+    else:
+        skills_text = "**Skills:** None"
+
+    # Costruisci il testo da stampare
+    details = (
+        f"**Nome:** {name}\n"
+        f"**Razza:** {race}\n"
+        f"**Genere:** {genre}\n"
+        f"**Mano Dominante:** {dominant_hand}\n"
+        f"**Altezza:** {height}\n"
+        f"**Peso:** {weight}\n"
+        f"**Età:** {age}\n"
+        f"**Descrizione:** {description}\n"
+        f"**Tratti Distintivi:** {distinctive_traits}\n"
+        f"**Professione:** {profession}\n"
+        f"**Livello:** {level}\n\n"
+        f"**Statistiche:**\n"
+        f"  Forza: {stats.get('for', {}).get('value', 0)}\n"
+        f"  Costituzione: {stats.get('cos', {}).get('value', 0)}\n"
+        f"  Taglio: {stats.get('tag', {}).get('value', 0)}\n"
+        f"  Intelligenza: {stats.get('int', {}).get('value', 0)}\n"
+        f"  Potere: {stats.get('pot', {}).get('value', 0)}\n"
+        f"  Destrezza: {stats.get('des', {}).get('value', 0)}\n"
+        f"  Flessibilità: {stats.get('fas', {}).get('value', 0)}\n"
+        f"  Movimento: {stats.get('mov', {}).get('value', 0)}\n\n"
+        f"**Punti Ferita:** Correnti: {hit_points.get('current', 0)} / Massimi: {hit_points.get('max', 0)}\n"
+        f"**Punti Potere:** Correnti: {power_points.get('current', 0)} / Massimi: {power_points.get('max', 0)}\n\n"
+        f"{skills_text}\n\n"
+        f"**Armi:**\n"
+        f"  Fuoco: {', '.join(weapons.get('firearm', []))}\n"
+        f"  Corpo a Corpo: {', '.join(weapons.get('melee', []))}\n"
+        f"  A Distanza: {', '.join(weapons.get('ranged', []))}\n"
+        f"  Pesante: {', '.join(weapons.get('heavy', []))}\n\n"
+        f"**Armature:** {armor}\n"
+        f"**Scudi:** {shield}\n"
+        f"**Equipaggiamento:** {equipment}\n"
+        f"**Denaro:** {cash} monete\n\n"
+    )
+
+    await update.message.reply_text(details)
+
+
+async def assign_skill(update: Update, context: CallbackContext):
+    """Adds skill at level 1 to a character"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = "^[^,]+,[^,]+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/assign_skill <character name>, <skill to add>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    skill_to_add = input_text[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    with open(f"Json/skills.json", "r") as fp:
+        skills_fp = json.load(fp)
+
+    all_skills = []
+    for skill, details in skills_fp.items():
+        specializations = details.get("specializations", [])
+        if specializations:
+            all_skills.extend(specializations)
+        else:
+            all_skills.append(skill)
+
+    if skill_to_add in all_skills and skill_to_add not in user_data_player["skills"]:
+        skill_to_add = {skill_to_add: 1}
+        user_data_player["skills"].update(skill_to_add)
+
+        with open(f"Json/users/{user_id}.json", "w") as fp:
+            json.dump(user_data, fp, indent=4)
+
+        await update.message.reply_text(f"New skills set: {user_data[f'{pc}']['skills']}")
+    else:
+        await update.message.reply_text("Aborted: enter a valid skill from the following")
+        skills_to_show = [skill for skill in all_skills if skill not in user_data_player["skills"]]
+        await update.message.reply_text(skills_to_show)
+
+
+async def level_up_skill(update: Update, context: CallbackContext):
+    """Automatic dice roll of a 100 faces dice to upgrade the given character's skill"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = "^[^,]+,[^,]+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/level_up_skill <character name>, <skill to upgrade>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    skill_to_upgrade = input_text[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    # Managing skill's level update
+    if skill_to_upgrade in user_data_player["skills"]:      # The character actually has the skill
+        current_level = user_data_player["skills"][skill_to_upgrade]
+        return_message = dice_roll_check(1, 100, "/roll 1d100")
+
+        await update.message.reply_text(return_message["message"])
+
+        dice_roll_result = return_message["rolls_total"]
+        if dice_roll_result > current_level:
+            user_data_player["skills"][skill_to_upgrade] = dice_roll_result
+            message = f"Your skill has been correctly upgraded at level {dice_roll_result}"
+        else:
+            message = f"Level up failed: your skill is already at level {dice_roll_result} or above"
+
+        with open(f"Json/users/{user_id}.json", "w") as fp:
+            json.dump(user_data, fp, indent=4)
+
+        await update.message.reply_text(message)
+    else:
+        await update.message.reply_text("Aborted: enter a valid skill your character possesses")
+
+
+async def add_weapon(update: Update, context: CallbackContext):
+    """Adds weapon to a character after checking for weapon existence"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = "^[^,]+,[^,]+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/add_weapon <character name>, <weapon to add>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    weapon_to_add = input_text[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    # Getting all possible weapons from json
+    with open(f"Json/weapons/firearm.json", "r") as fp:
+        firearm = json.load(fp)
+    with open(f"Json/weapons/heavy.json", "r") as fp:
+        heavy = json.load(fp)
+    with open(f"Json/weapons/melee.json", "r") as fp:
+        melee = json.load(fp)
+    with open(f"Json/weapons/ranged.json", "r") as fp:
+        ranged = json.load(fp)
+
+    # Mapping weapon types to their respective JSON data
+    weapons = {
+        "firearm": firearm,
+        "heavy": heavy,
+        "melee": melee,
+        "ranged": ranged
+    }
+
+    def check_string(weapon, weapons_data):
+        for weapon_type, weapon_dict in weapons_data.items():
+            if weapon in weapon_dict:
+                # Ensure the weapon type exists in user_data_player
+                if weapon_type not in user_data_player["weapons"]:
+                    user_data_player["weapons"][weapon_type] = []
+
+                # Add the weapon name to the appropriate category in user_data_player
+                user_data_player["weapons"][weapon_type].append(weapon)
+                message = f"Successfully added {weapon} to your {weapon_type} weapons."
+                return message
+
+        message = "Abort: select a valid weapon from the following:"
+        return message
+
+    return_message = check_string(weapon_to_add, weapons)
+    await update.message.reply_text(return_message)
+
+    if "Successfully" in return_message:
+        with open(f"Json/users/{user_id}.json", "w") as fp:
+            json.dump(user_data, fp, indent=4)
+    else:
+        list_of_weapons = ""
+        for weapon_type, weapon_dict in weapons.items():
+            list_of_weapons += f"{weapon_type.capitalize()}:\n"
+
+            for weapon_name in weapon_dict.keys():
+                list_of_weapons += f"• {weapon_name}\n"
+
+            list_of_weapons += "\n"
+
+        await update.message.reply_text(list_of_weapons)
+
+
+async def add_armor(update: Update, context: CallbackContext):
+    """Add a type of armor to a given character after checking for armor existence"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = "^[^,]+,[^,]+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/add_armor <character name>, <armor to add>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    armor_to_add = input_text[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    with open(f"Json/armors.json", "r") as fp:
+        armors = json.load(fp)
+
+    if armor_to_add in armors and armor_to_add not in user_data_player["armor"]:
+        user_data_player["armor"].append(armor_to_add)
+
+        with open(f"Json/users/{user_id}.json", "w") as fp:
+            json.dump(user_data, fp, indent=4)
+
+        await update.message.reply_text(f"Your armor set has been updated: {user_data[f'{pc}']['armor']}")
+    else:
+        await update.message.reply_text("Aborted: enter a valid armor from the following")
+        armors_to_show = [armor for armor in armors if armor not in user_data_player["armor"]]
+        await update.message.reply_text(armors_to_show)
+
+
+async def add_shield(update: Update, context: CallbackContext):
+    """Add a type of shield to a given character after checking for shield existence"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = "^[^,]+,[^,]+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/add_shield <character name>, <shield to add>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    shield_to_add = input_text[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    with open(f"Json/shields.json", "r") as fp:
+        shields = json.load(fp)
+
+    if shield_to_add in shields and shield_to_add not in user_data_player["shield"]:
+        user_data_player["shield"].append(shield_to_add)
+
+        with open(f"Json/users/{user_id}.json", "w") as fp:
+            json.dump(user_data, fp, indent=4)
+
+        await update.message.reply_text(f"Your shield set has been updated: {user_data[f'{pc}']['shield']}")
+    else:
+        await update.message.reply_text("Aborted: enter a valid armor from the following")
+        shields_to_show = [shield for shield in shields if shield not in user_data_player["shield"]]
+        await update.message.reply_text(shields_to_show)
+
+
+async def add_equipment(update: Update, context: CallbackContext):
+    """Assign the inserted equipment to the chosen character"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = "^[^,]+,[^,]+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/add_equipment <character name>, <equipment to add>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    equipment_to_add = input_text[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    # Adding equipment to character
+    user_data_player["equipment"].append(equipment_to_add)
+    with open(f"Json/users/{user_id}.json", "w") as fp:
+        json.dump(user_data, fp, indent=4)
+
+    await update.message.reply_text("The equipment has been correctly assigned")
+
+
+async def save_currency(update: Update, context: CallbackContext):
+    """Gives currency to a character"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = "^[^,]+,[0-9]+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/save_currency <character name>, <quantity>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    balance_modifier = input_text[1]
+
+    correct_input = r"[0-9]*"
+
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    if re.fullmatch(correct_input, balance_modifier):
+        user_data[f"{pc}"]["cash"] += int(balance_modifier)
+
+        with open(f"Json/users/{user_id}.json", "w") as fp:
+            json.dump(user_data, fp, indent=4)
+
+        await update.message.reply_text(f"New balance: {user_data[f'{pc}']['cash']}")
+    else:
+        await update.message.reply_text("aborted: enter a valid number")
+
+
+async def pay_currency(update: Update, context: CallbackContext):
+    """takes currency from a character"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = "^[^,]+,[0-9]+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/pay_currency <character name>, <quantity>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    balance_modifier = input_text[1]
+
+    correct_input = r"[0-9]*"
+
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    if re.fullmatch(correct_input, balance_modifier):
+        if user_data[f"{pc}"]["cash"] >= int(balance_modifier):
+            user_data[f"{pc}"]["cash"] -= int(balance_modifier)
+
+            with open(f"Json/users/{user_id}.json", "w") as fp:
+                json.dump(user_data, fp, indent=4)
+            await update.message.reply_text(f"New balance: {user_data[f'{pc}']['cash']}")
+        else:
+            await update.message.reply_text("aborted: you can't spend money you don't have!")
+    else:
+        await update.message.reply_text("aborted: enter a valid number")
+
+
+async def ability_roll(update: Update, context: CallbackContext):
+    """
+        Perform ability dice roll to see if ability's use has been a success
+        (in this case it is checked the condition for special success) of a failure
+    """
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = "^[^,]+,[^,]+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/ability_roll <character name>, <skill to use>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    skill_to_use = input_text[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    if skill_to_use in user_data[f"{pc}"]["skills"]:
+        return_message = dice_roll_check(1, 100, "/roll 1d100")
+
+        await update.message.reply_text(return_message["message"])
+
+        dice_roll_result = return_message["rolls_total"]
+        skill_level = user_data_player["skills"][skill_to_use]
+        if dice_roll_result <= skill_level:
+            # Extracting special_success levels from json
+            with open(f"Json/special_success.json", "r") as fp:
+                special_success = json.load(fp)
+
+            if dice_roll_result in range(special_success[user_data_player["skills"][skill_to_use]]):
+                await update.message.reply_text("You obtained a special success!")
+            else:
+                await update.message.reply_text("You obtained a success!")
+
+        else:
+            await update.message.reply_text(f"You failed to use the skill {skill_to_use}")
+    else:
+        await update.message.reply_text("Abort: please choose a skill your character possesses")
+        return
+
+
+async def ability_vs_ability(update: Update, context: CallbackContext):
+    """Ménage the use of a character skill against another ability"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern_format = r"^[^:]+:[^,]+,\d+$"
+    pattern_level = r"^(100|[1-9]?[0-9])$"
+    if not re.fullmatch(pattern_format, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/ability_vs_ability <character name>: <skill used> , <enemy skill level>\"")
+        return
+
+    input_text = " ".join(context.args).split(": ")
+    pc_name = input_text[0].strip()
+    pc = "_".join(input_text[0].lower().split())
+    details = input_text[1].split(", ")
+    skill_used = details[0].strip()
+    enemy_skill_level = details[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    # Making sure the character possesses the skill
+    if skill_used in user_data[f"{pc}"]["skills"]:
+        player_skill_level = user_data_player["skills"][skill_used]
+    else:
+        await update.message.reply_text(f"{pc_name} does not posses the skill {skill_used}")
+        return
+
+    if re.fullmatch(pattern_level, enemy_skill_level):
+        # Calculating dice rolls
+        player_roll = dice_roll(1, 100)
+        player_roll = player_roll["rolls_total"]
+        enemy_roll = dice_roll(1, 100)
+        enemy_roll = enemy_roll["rolls_total"]
+
+        # Extracting special_success levels from json
+        with open(f"Json/special_success.json", "r") as fp:
+            special_success = json.load(fp)
+
+        # Managing player dice roll result
+        if player_roll <= player_skill_level:
+            if player_roll in range(special_success[f"{player_skill_level}"]):
+                skill_result_player = 2
+                await update.message.reply_text(f"You got a SPECIAL SUCCESS! (dice_roll: {player_roll})")
+            else:
+                skill_result_player = 1
+                await update.message.reply_text(f"You got a SUCCESS! (dice_roll: {player_roll})")
+        else:
+            await update.message.reply_text(f"You got a FAILURE! (dice_roll: {player_roll})")
+            skill_result_player = 0
+
+        # Managing enemy dice roll result
+        if enemy_roll <= int(enemy_skill_level):
+            if enemy_roll in range(special_success[enemy_skill_level]):
+                await update.message.reply_text(f"The enemy got a SPECIAL SUCCESS! (dice_roll: {enemy_roll})")
+                skill_result_enemy = 2
+            else:
+                await update.message.reply_text(f"The enemy got a SUCCESS! (dice_roll: {enemy_roll})")
+                skill_result_enemy = 1
+        else:
+            await update.message.reply_text(f"The enemy got a FAILURE! (dice_roll: {enemy_roll})")
+            skill_result_enemy = 0
+
+        # Printing to user the event based on the 2 rolls
+        if skill_result_player > skill_result_enemy:
+            await update.message.reply_text(f"{pc_name} was able to use the skill {skill_used}")
+        elif skill_result_player < skill_result_enemy:
+            await update.message.reply_text(f"{pc_name} was not able to use the skill {skill_used}")
+        elif skill_result_player == skill_result_enemy:
+            await update.message.reply_text("The skills canceled out each other")
+
+    else:
+        await update.message.reply_text("Abort: please type a valid skill level (between 1 and 100)")
+
+
+async def resistance_roll(update: Update, context: CallbackContext):
+    """Ménage the use of a character stat against an obstacle"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern_format = r"^[^:]+:[^,]+,\d+$"
+    pattern_level = r"^(21|[1-9]|1[0-9]|20)$"
+    if not re.fullmatch(pattern_format, "".join(context.args)):
+        await update.message.reply_text(
+            "Correct usage:\n\"/resistance_roll <character name>: <stat used> , <obstacle stat value>\"")
+        return
+
+    input_text = " ".join(context.args).split(": ")
+    pc_name = input_text[0].strip()
+    pc = "_".join(input_text[0].lower().split())
+    details = input_text[1].split(", ")
+    stat_used = details[0].strip().lower()
+    obstacle_stat_level = details[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    # Making sure the character possesses the stat
+    if stat_used in user_data[f"{pc}"]["stats"]:
+        player_stat_level = user_data_player["stats"][f"{stat_used}"]["value"]
+        if player_stat_level > 21:
+            player_stat_level = 21
+    else:
+        await update.message.reply_text(f"{pc_name} does not posses the '{stat_used}' stat")
+        return
+
+    if re.fullmatch(pattern_level, obstacle_stat_level):
+        # Calculating dice rolls
+        dice_roll_result = dice_roll(1, 100)
+        dice_roll_result = dice_roll_result["rolls_total"]
+
+        # Extracting special_success levels from json
+        with open(f"Json/resistance_table.json", "r") as fp:
+            resistance_table = json.load(fp)
+
+        # Extracting success probability based on the resistance_table
+        success_probability = resistance_table[f"{obstacle_stat_level}"][f"{player_stat_level}"]
+        await update.message.reply_text(
+            "Your success probability is " + str(success_probability) + "against the obstacle")
+
+        if dice_roll_result <= success_probability:
+            await update.message.reply_text(f"Success! Your stat prevailed (You got a {dice_roll_result})")
+        else:
+            await update.message.reply_text(
+                f"Failure! The obstacle was too strong for your stat (You got a {dice_roll_result})")
+
+    else:
+        await update.message.reply_text("Abort: please type a valid stat level (between 1 and 21)")
+
+
+async def stat_roll(update: Update, context: CallbackContext):
+    """Dice roll to determine whether the use of a particular character's stat is successful or not"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = r"^[^,]+,[a-zA-Z]{3}$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/stat_roll <character name>, <stat to use>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    stat_to_use = input_text[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    # Checking for stat existence
+    stat_to_use = stat_to_use.lower()
+    if stat_to_use in user_data_player["stats"]:
+        stat_level = user_data_player["stats"][f"{stat_to_use}"]["value"]
+        success_probability = stat_level * 4
+
+        # Managing dice roll
+        dice_roll_result = dice_roll(1, 100)
+        dice_roll_result = dice_roll_result["rolls_total"]
+        await update.message.reply_text(f"You got a {dice_roll_result} on your dice roll while the "
+                                        f"probability to correctly use '{stat_to_use}' is {success_probability}%")
+
+        if dice_roll_result <= success_probability:
+            # Extracting special_success levels from json
+            with open(f"Json/special_success.json", "r") as fp:
+                special_success = json.load(fp)
+
+            if dice_roll_result in range(special_success[f"{success_probability}"]):
+                await update.message.reply_text("You obtained a special success!")
+            else:
+                await update.message.reply_text("You obtained a success!")
+
+        else:
+            await update.message.reply_text(f"You failed to use the stat '{stat_to_use}'")
+
+    else:
+        await update.message.reply_text("Abort: please type a valid stat")
+
+
+async def roll(update: Update, context: CallbackContext):
+    """
+        /roll command handler. Supports multiple dice throws, modifier addition/subtraction,
+        and an inline keyboard mode
+    """
+    input_text = ''.join(context.args)
+    pattern_v3 = r"(?!ABC)(([1-9][0-9]*d[1-9][0-9]*)(,[1-9][0-9]*d[1-9][0-9]*)*)([\+|-][0-9]+)?(?<!ABC)"
+
+    if len(input_text) == 0:
+        keyboard = [
+            [
+                InlineKeyboardButton("d3", callback_data="3"), InlineKeyboardButton("d4", callback_data="4")
+            ],
+            [
+                InlineKeyboardButton("d6", callback_data="6"), InlineKeyboardButton("d8", callback_data="8")
+            ],
+            [
+                InlineKeyboardButton("d10", callback_data="10"), InlineKeyboardButton("d12", callback_data="12")
+            ],
+            [
+                InlineKeyboardButton("d20", callback_data="20"), InlineKeyboardButton("d100", callback_data="100")
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text("Choose your dice roll", reply_markup=reply_markup)
+
+    elif re.fullmatch(pattern_v3, input_text):
+        input_components = re.split(r'(\+|-)', input_text)
+        roll_groups = input_components[0].split(',')
+
+        result = 0
+        roll_log = []
+        for group in roll_groups:
+            entries = group.split(sep="d")
+            rolls = int(entries[0])
+            dice_type = int(entries[1])
+
+            outcome = dice_roll(rolls, dice_type)
+            result += outcome['rolls_total']
+            roll_log += outcome['rolls_log']
+
+        if len(input_components) > 1:
+            roll_modifier = int(input_components[2])
+            if input_components[1] == '+':
+                result += roll_modifier
+            elif input_components[1] == '-':
+                result -= roll_modifier
+
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                                           text=f"{' + '.join(str(r) for r in roll_log)} ({input_components[1]}{roll_modifier}) = {result}")
+        else:
+            if len(roll_log) > 1:
+                await context.bot.send_message(chat_id=update.effective_chat.id,
+                                               text=f"{' + '.join(str(r) for r in roll_log)} = {result}")
+            else:
+                await context.bot.send_message(chat_id=update.effective_chat.id, text=f"{result}")
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Invalid command arguments, please try again.")
+
+
+async def attack(update: Update, context: CallbackContext):
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = r"^[^,]+->\d+,.+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\""
+                                        "/attack <attacker name> -> <enemy distance>, <weapon used>\"")
+        return
+
+    input_text = " ".join(context.args).split(" -> ")
+    attacker_name = input_text[0].strip()
+    pc = "_".join(input_text[0].lower().split())
+    distance_and_weapon = input_text[1].split(", ")
+    enemy_distance = distance_and_weapon[0].strip()
+    weapon_used = distance_and_weapon[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {attacker_name}")
+        return
+
+    weapons = user_data_player["weapons"]
+
+    def check_weapon(weapon_name, weapons_dict):
+        for weapon_category, weapon_list in weapons_dict.items():
+            if weapon_name in weapon_list:
+                return True, weapon_category
+        return False, None
+
+    possesses_weapon, weapon_type = check_weapon(weapon_used, weapons)
+    if possesses_weapon:
+        # Extracting weapon's info
+        with open(f"Json/weapons/{weapon_type}.json", "r") as fp:
+            list_of_weapons = json.load(fp)
+        weapon_info = list_of_weapons[f"{weapon_used}"]
+
+        # Rolling 100 sides dice looking for successful skill usage
+        dice_roll_result = dice_roll(1, 100)["rolls_total"]
+
+        # Getting skill name from weapon type
+        weapon_type_skill = {
+            "firearm": "Arma da Fuoco",
+            "melee": "Arma da Mischia",
+            "ranged": "Arma a Distanza",
+            "heavy": "Arma Pesante"
+        }
+        skill = weapon_type_skill.get(weapon_type)
+
+        # Extracting skill level
+        skill_level = 0
+        if skill in user_data_player["skills"]:
+            skill_level = user_data_player["skills"][f"{skill}"]
+
+        # Calculating success_probability
+        success_probability = skill_level + weapon_info["base"]
+        weapon_range = weapon_info["range"]
+        updated_success_probability = calculate_hit_probability(int(enemy_distance), weapon_info["range"], success_probability)
+        await update.message.reply_text(f"Since the target is {enemy_distance}m away and your weapon has a range of "
+                                        f"{weapon_range}, your success probability is {updated_success_probability}%")
+
+        # Analyzing dice roll
+        if dice_roll_result <= updated_success_probability:
+            # Extracting special_success levels from json
+            with open(f"Json/special_success.json", "r") as fp:
+                special_success = json.load(fp)
+
+            if dice_roll_result in range(special_success[f"{success_probability}"]):
+                await update.message.reply_text(f"SPECIAL SUCCESS: You got a {dice_roll_result} on your dice ")
+            else:
+                await update.message.reply_text(f"SUCCESS: You got a {dice_roll_result} on your dice ")
+
+            # Calculating damage
+            for_stat = user_data_player["stats"]["for"]["value"]
+            tag_stat = user_data_player["stats"]["tag"]["value"]
+            sum_for_tag = for_stat + tag_stat
+
+            def damage_bonus_calculator(for_tag):
+                if 2 <= for_tag <= 12:
+                    return "-1D6"
+                elif 13 <= for_tag <= 16:
+                    return "-1D4"
+                elif 17 <= for_tag <= 24:
+                    return "+0"
+                elif 25 <= for_tag <= 32:
+                    return "+1D4"
+                elif 33 <= for_tag <= 40:
+                    return "+1D6"
+                elif 41 <= for_tag <= 56:
+                    return "+2D6"
+                else:
+                    return "+3D6"
+
+            damage_bonus = damage_bonus_calculator(sum_for_tag)
+            damage = calculate_roll_expression(weapon_info["damage"] + damage_bonus)
+
+            await update.message.reply_text(f"The attack will inflict a total of {damage} damage")
+
+        else:
+            await update.message.reply_text(f"FAILURE: You got a {dice_roll_result} on your dice ")
+
+    else:
+        await update.message.reply_text("Aborted: enter a valid weapon your character possesses")
+
+
+async def evade(update: Update, context: CallbackContext):
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = r"^[\w\s]+<-[\w\s]+,\d+$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\""
+                                        "/evade <defender name> <- <type of success>, <damage>\"")
+        return
+
+    input_text = " ".join(context.args).split(" <- ")
+    defender_name = input_text[0].strip()
+    pc = "_".join(input_text[0].lower().split())
+    rest_of_input = input_text[1].split(", ")
+    type_of_success = rest_of_input[0].strip().lower().replace(" ", "_")
+    damage = rest_of_input[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {defender_name}")
+        return
+
+    # Checking validity of success type
+    if type_of_success not in ["special_success", "success"]:
+        await update.message.reply_text("Abort: please enter a valid type of success")
+        return
+
+    if "Schivare" in user_data_player["skills"]:
+        dice_roll_result = dice_roll(1, 100)["rolls_total"]
+
+        skill_level = user_data_player["skills"]["Schivare"]
+        if dice_roll_result <= skill_level:
+            # Extracting special_success levels from json
+            with open(f"Json/special_success.json", "r") as fp:
+                special_success = json.load(fp)
+
+            if dice_roll_result in range(special_success[f"{skill_level}"]):
+                await update.message.reply_text("You obtained a special success!")
+                success_result = "ss"
+            else:
+                await update.message.reply_text("You obtained a success!")
+                success_result = "s"
+
+        else:
+            await update.message.reply_text("You failed to evade the attack")
+            success_result = "f"
+
+        results_combinations = {
+            ("special_success", "ss"): "*0",
+            ("special_success", "s"): "/2",
+            ("special_success", "f"): "*2",
+            ("success", "ss"): "*0",
+            ("success", "s"): "*0",
+            ("success", "f"): "+0",
+        }
+
+        # Calculating damage based on the type of success obtained
+        expression = f"{damage}{results_combinations.get((type_of_success, success_result))}"
+        damage_result = eval(expression)
+
+        # Extracting armors info
+        with open(f"Json/armors.json", "r") as fp:
+            all_armors = json.load(fp)
+        extra_hp = 0
+        for armor in user_data_player["armor"]:
+            extra_hp += all_armors[f"{armor}"]["Armor Points"]
+
+        # Subtracting damage
+        current_hp = user_data_player["hit_points"]["current"]
+        remaining_damage = extra_hp - damage_result
+        if remaining_damage < 0:
+            new_hp = current_hp + remaining_damage
+        else:
+            new_hp = current_hp
+
+        if new_hp < 0:
+            new_hp = 0
+        user_data_player["hit_points"]["current"] = new_hp
+
+        # Saving the new hit points value
+        with open(f"Json/users/{user_id}.json", "w") as fp:
+            json.dump(user_data, fp, indent=4)
+
+        hp = user_data_player["hit_points"]["current"]
+        if hp == 0:
+            await update.message.reply_text("You got a fatal wound! Your hp dropped to 0")
+        elif 0 < hp < 3:
+            await update.message.reply_text(f"Because of the attack {defender_name} passed out")
+        else:
+            await update.message.reply_text(f"Current hit_points: {hp}")
+
+    else:
+        await update.message.reply_text("Abort: you are not able to evade the attack since you do not possess the skill 'Schivare'")
+
+
+async def shield(update: Update, context: CallbackContext):
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = r"^[\w\s]+\([\w\s]+\) <- [\w\s]+, \d+$"
+    if not re.fullmatch(pattern, " ".join(context.args)):
+        await update.message.reply_text("Correct usage:\n"
+                                        "\"/shield <defender name>(<item used to defend>) <- <type of success>, <damage>\"")
+        return
+
+    input_text = " ".join(context.args).split(" <- ")
+    defender_info = input_text[0].strip()
+    rest_of_input = input_text[1].split(", ")
+    defender_name, skill_used = defender_info[:-1].split('(')
+    pc = "_".join(defender_name.lower().split())
+    defender_name = defender_name.strip()
+    item_used = skill_used.strip()
+    type_of_success = rest_of_input[0].strip().lower().replace(" ", "_")
+    damage = rest_of_input[1].strip()
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {defender_name}")
+        return
+
+    # Checking validity of success type
+    if type_of_success not in ["special_success", "success"]:
+        await update.message.reply_text("Abort: please enter a valid type of success")
+        return
+
+    # Extracting skill based on the item used to parry the attack
+    item = find_item(item_used, user_data_player)
+    item_related_skills = {
+        "firearm": "Arma da Fuoco",
+        "melee": "Arma da Mischia",
+        "ranged": "Arma a Distanza",
+        "heavy": "Arma Pesante",
+        "shield": "Scudo"
+    }
+    general_skill_used = item_related_skills.get(item)
+    skill_used = get_actual_skill(general_skill_used, user_data_player)
+
+    if skill_used in user_data_player["skills"]:
+        # Preparing the shields info if needed
+        if skill_used == "Scudo":
+            with open(f"Json/shields.json", "r") as fp:
+                all_shields = json.load(fp)
+
+        dice_roll_result = dice_roll(1, 100)["rolls_total"]
+        skill_level = user_data_player["skills"][f"{skill_used}"]
+
+        # Managing shield case
+        if skill_used == "Scudo":
+            probability_to_add = all_shields[f"{item_used}"]["Base Probability"]
+            skill_level += probability_to_add
+            if skill_level > 100:
+                skill_level = 100
+
+        if dice_roll_result <= skill_level:
+            # Extracting special_success levels from json
+            with open(f"Json/special_success.json", "r") as fp:
+                special_success = json.load(fp)
+
+            if dice_roll_result in range(special_success[f"{skill_level}"]):
+                await update.message.reply_text("You obtained a special success!")
+                success_result = "ss"
+            else:
+                await update.message.reply_text("You obtained a success!")
+                success_result = "s"
+
+        else:
+            await update.message.reply_text("You failed to evade the attack")
+            success_result = "f"
+
+        results_combinations = {
+            ("special_success", "ss"): "*0",
+            ("special_success", "s"): "/2",
+            ("special_success", "f"): "*2",
+            ("success", "ss"): "*0",
+            ("success", "s"): "*0",
+            ("success", "f"): "+0",
+        }
+
+        # Calculating damage based on the type of success obtained
+        expression = f"{damage}{results_combinations.get((type_of_success, success_result))}"
+        damage_result = eval(expression)
+
+        # Extracting armors info
+        with open(f"Json/armors.json", "r") as fp:
+            all_armors = json.load(fp)
+        extra_hp = 0
+        for armor in user_data_player["armor"]:
+            extra_hp += all_armors[f"{armor}"]["Armor Points"]
+
+        # Subtracting damage
+        current_hp = user_data_player["hit_points"]["current"]
+        remaining_damage = extra_hp - damage_result
+        if remaining_damage < 0:
+            new_hp = current_hp + remaining_damage
+        else:
+            new_hp = current_hp
+
+        if new_hp < 0:
+            new_hp = 0
+        user_data_player["hit_points"]["current"] = new_hp
+
+        # Saving the new hit points value
+        with open(f"Json/users/{user_id}.json", "w") as fp:
+            json.dump(user_data, fp, indent=4)
+
+        hp = user_data_player["hit_points"]["current"]
+        if hp == 0:
+            await update.message.reply_text("You got a fatal wound! Your hp dropped to 0")
+        elif 0 < hp < 3:
+            await update.message.reply_text(f"Because of the attack {defender_name} passed out")
+        else:
+            await update.message.reply_text(f"Current hit_points: {hp}")
+
+    else:
+        await update.message.reply_text(f"Abort: you are not able to parry the attack since you do not possess the skill '{skill_used}'")
+
+
+def find_item(item, character):
+    """
+        Helping function used to extract list's name in which the item is contained t
+        :param item: Item to look for
+        :param character: Character info with the lists to analyze
+        :return: Name of the list containing the item
+    """
+    weapon_categories = ["firearm", "melee", "ranged", "heavy"]
+
+    # Checking all 4 weapons list
+    for category in weapon_categories:
+        if item in character["weapons"][category]:
+            return category
+
+    # Checking shield list
+    if item in character["shield"]:
+        return "shield"
+
+    return None  # In case no object has been found
+
+
+def get_actual_skill(general_skill, character):
+    """
+        Helping function used to extract a specialized skill
+        given the general one that is supposed to contain it
+        :param general_skill: Skill with multiple specializations
+        :param character: Character info used to point the specific skill needed
+        :return: Specialized skill
+    """
+    with open(f"Json/skills.json", "r") as fp:
+        all_skills = json.load(fp)
+
+    specialized_skills = all_skills[f"{general_skill}"]["specializations"]
+
+    for skill in specialized_skills:
+        if skill in character["skills"]:
+            return skill
+
+    return None     # In case no skill has been found
+
+
+async def remove_hp(update: Update, context: CallbackContext):
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = r"^[^,]+,\s*\d+$"
+    correct_input = r"\d+"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/remove_hp <character name>, <hp to remove>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    hp_to_remove = input_text[1]
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    if re.fullmatch(correct_input, hp_to_remove):
+        current_hp = user_data_player["hit_points"]["current"]
+        new_hp = current_hp - int(hp_to_remove)
+
+        if new_hp < 0:
+            user_data_player["hit_points"]["current"] = 0
+        else:
+            user_data_player["hit_points"]["current"] = new_hp
+
+        # Saving the new hit points value
+        with open(f"Json/users/{user_id}.json", "w") as fp:
+            json.dump(user_data, fp, indent=4)
+        hp = user_data_player["hit_points"]["current"]
+        await update.message.reply_text(f"Current hit_points: {hp}")
+
+    else:
+        await update.message.reply_text("Aborted: enter a valid 'hp' number")
+
+
+async def heal(update: Update, context: CallbackContext):
+    """Increment a character hit_points by the number given in input"""
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = r"^[^,]+,\s*\d+$"
+    correct_input = r"\d+"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/heal <character name>, <hp to add>\"")
+        return
+
+    input_text = (" ".join(context.args)).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(input_text[0].lower().split())
+    hp_to_add = input_text[1]
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    if re.fullmatch(correct_input, hp_to_add):
+        current_hp = user_data_player["hit_points"]["current"]
+        max_hp = user_data_player["hit_points"]["max"]
+        new_hp = current_hp + int(hp_to_add)
+
+        if new_hp > max_hp:
+            user_data_player["hit_points"]["current"] = max_hp
+        else:
+            user_data_player["hit_points"]["current"] = new_hp
+
+        # Saving the new hit points value
+        with open(f"Json/users/{user_id}.json", "w") as fp:
+            json.dump(user_data, fp, indent=4)
+        hp = user_data_player["hit_points"]["current"]
+        await update.message.reply_text(f"Current hit_points: {hp}")
+
+    else:
+        await update.message.reply_text("Aborted: enter a valid 'hp' number")
+
+
+async def remove_item(update: Update, context: CallbackContext):
+    user_id = update.effective_user.name
+
+    # Checking input format
+    pattern = r"^[a-zA-Z\s]+,\s*[a-zA-Z\s]+:\s*[a-zA-Z0-9_]+\s*$"
+    if not re.fullmatch(pattern, "".join(context.args)):
+        await update.message.reply_text("Correct usage:\n\"/heal <character name>, <hp to add>\"")
+        return
+
+    input_text = " ".join(context.args).split(", ")
+    pc_name = " ".join(input_text[0].split())
+    pc = "_".join(pc_name.lower().split())
+    item_info = input_text[1].split(": ")
+    item_type = " ".join(item_info[0].split()).lower()
+    item_to_remove = " ".join(item_info[1].split())
+
+    # Making sure the selected character exists
+    try:
+        with open(f"Json/users/{user_id}.json", "r") as fp:
+            user_data = json.load(fp)
+            user_data_player = user_data[f"{pc}"]
+    except KeyError:
+        await update.message.reply_text(f"You have no character named {pc_name}")
+        return
+
+    item_types = {
+        "skill": "skills",
+        "weapon": "weapons",
+        "armor": "armor",
+        "shield": "shield",
+        "equipment": "equipment"
+    }
+    # Checking validity of item type
+    if item_type not in item_types:
+        await update.message.reply_text("Aborted: enter a valid item type")
+        return
+
+    def get_all_weapons(character):
+        weapons = character.get("weapons", {})
+
+        all_weapons = []
+        for weapon_list in weapons.values():
+            all_weapons.extend(weapon_list)
+
+        return all_weapons
+
+    # Checking for item existence
+    if item_type == "weapon":
+        list_of_items = get_all_weapons(user_data_player)
+    else:
+        list_of_items = user_data_player[f"{item_types.get(item_type)}"]
+
+    if item_to_remove in list_of_items:
+        def remove_item(collection, item):
+            if isinstance(collection, list):
+                try:
+                    collection.remove(item)
+                    return True
+                except ValueError:
+                    return False
+            elif isinstance(collection, dict):
+                if item in collection:
+                    del collection[item]
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+        def remove_weapon(character, weapon_name):
+            weapons = character.get("weapons", {})
+
+            for category, weapon_list in weapons.items():
+                if weapon_name in weapon_list:
+                    weapon_list.remove(weapon_name)
+                    return True
+
+            return False
+
+        if item_type == "weapon":
+            outcome = remove_weapon(user_data_player, item_to_remove)
+        else:
+            outcome = remove_item(user_data_player[f"{item_types.get(item_type)}"], item_to_remove)
+
+        if outcome:
+            await update.message.reply_text("Your item has been successfully removed")
+            # Saving updated character
+            with open(f"Json/users/{user_id}.json", "w") as fp:
+                json.dump(user_data, fp, indent=4)
+        else:
+            await update.message.reply_text("An error occurred")
+
+    else:
+        await update.message.reply_text("Aborted: enter a valid item type")
+
+
+async def help_f(update: Update, context: CallbackContext):
+    """help message"""
+    help_text = (
+        "Welcome to the game! Here are the commands you can use:\n\n"
+        "/start - Start the game and get the initial instructions.\n"
+        "/new_pc - Starts the guided process of new character creation.\n"
+        "/cancel - Command available only during character creation to stop the process without saving\n"
+        "/view_character - View your character's details.\n"
+        "/assign_skill - Assign skill to your character.\n"   
+        "/level_up_skill - Dice roll to upgrade a skill.\n"
+        "/add_weapon - Add weapon to a character. \n"
+        "/add_armor - Add armor to a character. \n"
+        "/add_shield - Add a shield to your character.\n"
+        "/add_equipment - Add an equipment to your character.\n"
+        "/remove_hp - Remove na item or skill from a given character.\n"
+        "/save_currency - Add money to a character.\n"
+        "/pay_currency - Remove money from a character.\n"
+        "/ability_roll - Dice roll to use a character ability \n"   
+        "/ability_vs_ability - Decide winner between two ability used at the same time.\n"  
+        "/resistance_roll - Dice roll to use a stat against some resistance.\n"
+        "/stat_roll - Dice roll to use a stat\n"
+        "/attack - Calculate damage and result of an attack given target distance and weapon used\n"
+        "/evade - Returns the result of an attempt to evade the attack given the damage e type of success\n"
+        "/shield - Returns the result of an attempt to shield the attack given the damage e type of success\n"
+        "/remove_hp - Used to inflict damage in case the defender has neither the skill 'Schivare' neither a shield\n"
+        "/heal - Regenerate the character hp by the given number\n"
+        "/roll - Generic dice roll with multiple dice option\n"
+        "/help - Show all possible commands.\n\n"
+        "For more information about each command, you can click the buttons below."
+    )
+
+    # Define the keyboard layout
+    keyboard = [
+        ["/start", "/new_pc"],
+        ["/view_character", "/assign_skill"],
+        ["/level_up_skill", "/add_weapon"],
+        ["/add_armor", "/add_shield"],
+        ["/add_equipment", "/help"],
+        ["/save_currency", "/pay_currency"],
+        ["/ability_roll", "/ability_vs_ability"],
+        ["/resistance_roll", "/stat_roll"],
+        ["/roll", "/attack"],
+        ["/evade", "/shield"],
+        ["/heal", "/cancel"],
+        ["/remove_hp", "/remove_hp"]
+    ]
+
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+
+    await update.message.reply_text(help_text, reply_markup=reply_markup)
+
+
 async def preparing_assign_skill_points_state(user_id: str, update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     context.user_data['skill_points'] = 300
@@ -1024,10 +2399,17 @@ async def preparing_assign_skill_points_state(user_id: str, update: Update, cont
     print(context.user_data)
 
     await update.message.reply_text(skills_message)
-    await update.message.reply_text("You currently have 300 points to increase your skills' level. Please type the"
+    await update.message.reply_text("You currently have 300 points to increase your skills' level. Please type the "
                                     "skill you want to improve followed by the number of points to use on it")
 
     return
+
+
+async def gui_dice_roll(update: Update, context: CallbackContext):
+    """callback function for dice keyboard"""
+    dice = int(update.callback_query.data)
+    await context.bot.send_message(chat_id=update.effective_chat.id,
+                                   text=f"Result for d{dice}: {dice_roll(1, dice)['rolls_total']}")
 
 
 def main():
@@ -1036,6 +2418,93 @@ def main():
     # Handler for '/start' command
     start_handler = CommandHandler('start', start)
     application.add_handler(start_handler)
+
+    # handler for /roll
+    roll_handler = CommandHandler('roll', roll)
+    application.add_handler(roll_handler)
+
+    # handler for dice roll inline keyboard
+    application.add_handler(CallbackQueryHandler(gui_dice_roll))
+
+    # handler for /view_character
+    view_character_handler = CommandHandler('view_character', view_character)
+    application.add_handler(view_character_handler)
+
+    # handler for /assign_skill
+    assign_skill_handler = CommandHandler('assign_skill', assign_skill)
+    application.add_handler(assign_skill_handler)
+
+    # handler for /level_up_skill
+    level_up_skill_handler = CommandHandler('level_up_skill', level_up_skill)
+    application.add_handler(level_up_skill_handler)
+
+    # handler for /add_weapon
+    add_weapon_handler = CommandHandler('add_weapon', add_weapon)
+    application.add_handler(add_weapon_handler)
+
+    # handler for /add_armor
+    add_armor_handler = CommandHandler('add_armor', add_armor)
+    application.add_handler(add_armor_handler)
+
+    # handler for /add_shield
+    add_shield_handler = CommandHandler('add_shield', add_shield)
+    application.add_handler(add_shield_handler)
+
+    # handler for /add_equipment
+    add_equipment_handler = CommandHandler('add_equipment', add_equipment)
+    application.add_handler(add_equipment_handler)
+
+    # handler for /save_currency
+    save_currency_handler = CommandHandler('save_currency', save_currency)
+    application.add_handler(save_currency_handler)
+
+    # handler for /pay_currency
+    pay_currency_handler = CommandHandler('pay_currency', pay_currency)
+    application.add_handler(pay_currency_handler)
+
+    # handler for /ability_roll
+    ability_roll_handler = CommandHandler('ability_roll', ability_roll)
+    application.add_handler(ability_roll_handler)
+
+    # handler for /ability_vs_ability
+    ability_vs_ability_handler = CommandHandler('ability_vs_ability', ability_vs_ability)
+    application.add_handler(ability_vs_ability_handler)
+
+    # handler for /resistance_roll
+    resistance_roll_handler = CommandHandler('resistance_roll', resistance_roll)
+    application.add_handler(resistance_roll_handler)
+
+    # handler for /stat_roll
+    stat_roll_handler = CommandHandler('stat_roll', stat_roll)
+    application.add_handler(stat_roll_handler)
+
+    # handler for /attack
+    attack_handler = CommandHandler('attack', attack)
+    application.add_handler(attack_handler)
+
+    # handler for /evade
+    evade_handler = CommandHandler('evade', evade)
+    application.add_handler(evade_handler)
+
+    # handler for /shield
+    shield_handler = CommandHandler('shield', shield)
+    application.add_handler(shield_handler)
+
+    # handler for /remove_hp
+    remove_hp_handler = CommandHandler('remove_hp', remove_hp)
+    application.add_handler(remove_hp_handler)
+
+    # handler for /heal
+    heal_handler = CommandHandler('heal', heal)
+    application.add_handler(heal_handler)
+
+    # handler for /remove_item
+    remove_item_handler = CommandHandler('remove_item', remove_item)
+    application.add_handler(remove_item_handler)
+
+    # handler for /help
+    help_handler = CommandHandler('help', help_f)
+    application.add_handler(help_handler)
 
     pc_creation_handler = ConversationHandler(
         entry_points=[CommandHandler('new_pc', new_pc_start)],
