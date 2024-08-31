@@ -29,7 +29,6 @@ def validate_input_length(input_text: str, max_length: int = MAX_CHAR_LENGTH) ->
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    #await update.message.edit_reply_markup(reply_markup=ReplyKeyboardRemove())
     await update.message.reply_text("Hello! Welcome to the Basic Roleplaying bot.")
 
 
@@ -1798,7 +1797,9 @@ async def attack(update: Update, context: CallbackContext):
     weapons = user_data_player["weapons"]
 
     def check_weapon(weapon_name, weapons_dict):
+        print(weapon_name)
         for weapon_category, weapon_list in weapons_dict.items():
+            print(weapon_list)
             if weapon_name in weapon_list:
                 return True, weapon_category
         return False, None
@@ -2238,7 +2239,8 @@ async def remove_item(update: Update, context: CallbackContext):
     # Checking input format
     pattern = r"^[a-zA-Z\s]+,\s*[a-zA-Z\s]+:\s*[a-zA-Z0-9_]+\s*$"
     if not re.fullmatch(pattern, "".join(context.args)):
-        await update.message.reply_text("Correct usage:\n\"/heal <character name>, <hp to add>\"")
+        await update.message.reply_text("Correct usage:\n\""
+                                        "/remove_item <character name>, <type of item>: <item to remove>\"")
         return
 
     input_text = " ".join(context.args).split(", ")
@@ -2342,7 +2344,7 @@ async def help_f(update: Update, context: CallbackContext):
         "/add_armor - Add armor to a character. \n"
         "/add_shield - Add a shield to your character.\n"
         "/add_equipment - Add an equipment to your character.\n"
-        "/remove_hp - Remove na item or skill from a given character.\n"
+        "/remove_item - Remove na item or skill from a given character.\n"
         "/save_currency - Add money to a character.\n"
         "/pay_currency - Remove money from a character.\n"
         "/ability_roll - Dice roll to use a character ability \n"   
