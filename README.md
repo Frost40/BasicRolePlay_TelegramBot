@@ -55,7 +55,7 @@ The bot is built to streamline the gameplay experience, making it easier for pla
 This project was developed as part of a course at the Polytechnic of Milan, where I received an evaluation of **30/30** for my work.
 
 ## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
 ## Acknowledgments
 - Chaosium Inc.: For creating the Basic Roleplaying system and providing the SRD.
